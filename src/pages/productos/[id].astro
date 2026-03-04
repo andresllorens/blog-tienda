@@ -4,16 +4,16 @@ import LayoutPrincipal from "../../layouts/LayoutPrincipal.astro";
 import { getImageUrl } from "../../lib/utils";
 
 // 1. Generar todas las rutas posibles en el momento del 'build'
-// export async function getStaticPaths() {
-//   const products = await getProducts();
-//   return products.map((product) => ({
-//     params: { id: product.id.toString() },
-//   }));
-// }
-// 1. Generar ruta para 821 preubas
 export async function getStaticPaths() {
-  return [{ params: { id: "821" } }];
+  const products = await getProducts();
+  return products.map((product) => ({
+    params: { id: product.id.toString() },
+  }));
 }
+// // 1. Generar ruta para 821 preubas
+// export async function getStaticPaths() {
+//   return [{ params: { id: "821" } }];
+// }
 
 // Funcioines auxiliares
 const formatCurrency = (value) =>
