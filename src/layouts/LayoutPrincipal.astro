@@ -1,0 +1,38 @@
+---
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+const { title } = Astro.props;
+const { meta_description } = Astro.props;
+const { keywords } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>{title}</title>
+    <meta name="description" content={meta_description} />
+    <meta name="keywords" content={keywords} />
+    <link rel="icon" type="image/vnd.microsoft.icon" href="https://tecnolobbyx.com/tienda/img/favicon.ico?1699386201"/>
+    <link rel="shortcut icon" type="image/x-icon" href="https://tecnolobbyx.com/tienda/img/favicon.ico?1699386201"/>
+    <link rel="stylesheet" href="https://tecnolobbyx.com/tienda/modules/mobbex/views/css/front.css?ver=3.5.2" type="text/css" media="all"/>
+    <link rel="stylesheet" href="https://tecnolobbyx.com/theme.css" type="text/css" media="all"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  </head>
+  <body>
+    <main>
+      <Header />
+      <section id="wrapper">
+        <div class="container">
+          <div id="content-wrapper" class="js-content-wrapper">
+            <section id="main">
+              <slot />
+            </section>
+          </div>
+        </div>
+      </section>
+      <Footer />
+    </main>
+  </body>
+</html>

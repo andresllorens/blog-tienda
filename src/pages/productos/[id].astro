@@ -1,0 +1,547 @@
+---
+import { getProductById } from "../../lib/prestashop";
+import LayoutPrincipal from "../../layouts/LayoutPrincipal.astro";
+import { getImageUrl } from "../../lib/utils";
+
+// 1. Generar todas las rutas posibles en el momento del 'build'
+// export async function getStaticPaths() {
+//   const products = await getProducts();
+//   return products.map((product) => ({
+//     params: { id: product.id.toString() },
+//   }));
+// }
+// 1. Generar ruta para 821 preubas
+export async function getStaticPaths() {
+  return [{ params: { id: "821" } }];
+}
+
+// Funcioines auxiliares
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+
+// 2. Obtener la data específica para ESTE producto
+const { id } = Astro.params;
+const product = await getProductById(id);
+const productSlug = product.link_rewrite;
+const price = product.price ? parseFloat(product.price).toFixed(2) : "0.00";
+const name = product.name ?? "Producto sin nombre";
+const meta_description = product.meta_description ?? "";
+const meta_keywords = product.meta_keywords ?? "";
+const categoryId = parseInt(product.id_category_default);
+const description = product.description ?? "Sin descripción disponible.";
+
+// Precios
+const rawPrice = parseFloat(price);
+// Definimos variables de salida
+let porcDescuento = "";
+let precioEfectivo = 0;
+let precioDebito = 0;
+let cuota3 = 0;
+let cuota3SInteres = rawPrice / 3;
+let cuota6 = 0;
+
+// Grupo A: Celulares, Notebooks, tablets, consolas
+const grupoA = [18, 50, 61, 62];
+// Grupo B: SmartWatches, parlantes, auriculares
+const grupoB = [20, 17, 58];
+
+if (grupoA.includes(categoryId)) {
+  porcDescuento = "-30% OFF";
+  precioEfectivo = rawPrice * 0.7;
+  precioDebito = rawPrice * 0.95;
+  
+  // 3 Cuotas con recargo del 10%
+  const precioRecargo3 = rawPrice * 1.1;
+  cuota3 = precioRecargo3 / 3;
+  
+  // 6 Cuotas con recargo del 15%
+  const precioRecargo6 = rawPrice * 1.15;
+  cuota6 = precioRecargo6 / 6;
+
+} else if (grupoB.includes(categoryId)) {
+  porcDescuento = "-20% OFF";
+  precioEfectivo = rawPrice * 0.8;
+  precioDebito = rawPrice * 0.8;
+  
+  // 3 Cuotas sin recargo (precio lista)
+  cuota3 = rawPrice / 3;
+  
+  // 6 Cuotas con recargo del 10%
+  const precioRecargo6 = rawPrice * 1.1;
+  cuota6 = precioRecargo6 / 6;
+}
+
+//Efectivo
+const discountPercentEfectivo = categoryId === 18 ? 30 : 20;
+const textEfectivo = categoryId === 18 ? "Pagando en Efectivo - Envio Express Gratis en Cordoba" : "Pagando en Efectivo, Transferencia o Debito";
+const precioEfectivoNum = rawPrice * (1 - discountPercentEfectivo / 100);
+const showEftBlock = [17, 18, 20].includes(categoryId);
+
+//Imagenes
+const mainImageId = product.id_default_image ?? null;
+const mainImage = await getImageUrl(id, mainImageId);
+const images = product.associations.images || [];
+
+//Whatsapp
+const nameForWhatsapp = name.replace(/ /g, '+');
+const whatsappNumber = "5493513473549";
+const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=Hola+Lobbyx%21+Queria+consultarte+sobre+${nameForWhatsapp}&type=phone_number&app_absent=0`;
+---
+
+<LayoutPrincipal
+  title={name}
+  meta_description={meta_description}
+  keywords={meta_keywords}
+>
+  <div class="row product-container js-product-container">
+    <div class="col-md-6">
+      <section class="page-content" id="content">
+        {/* Inicio Product Flags */}
+        <ul class="product-flags js-product-flags">
+          {/* Caso para Categoría 18 (Celulares) */}
+          {categoryId === 18 && <li class="product-flag descuento">-30%</li>}
+
+          {/* Caso para Categoría 20 */}
+          {
+            categoryId === 20 && (
+              <>
+                <li class="product-flag descuento">-20%</li>
+                <li class="product-flag cuotas" style="margin-top: 1px;">
+                  3 Cuotas sin Interés
+                </li>
+              </>
+            )
+          }
+
+          {/* Caso para Categoría 17 */}
+          {
+            categoryId === 17 && (
+              <>
+                <li class="product-flag descuento">-20%</li>
+                <li class="product-flag cuotas" style="margin-top: 1px;">
+                  3 Cuotas sin Interés
+                </li>
+              </>
+            )
+          }
+        </ul>
+        {/* Fin Product Flags */}
+
+        {/* Iimagen del Producto */}
+        <div class="images-container js-images-container">
+          <div class="product-cover">
+            {/* imagen principal */}
+            <img
+              class="js-qv-product-cover img-fluid"
+              src={mainImage}
+              alt={productSlug}
+              title={productSlug}
+              loading="lazy"
+            />
+            {/* imagen principal */}
+          </div>
+
+          <div class="js-qv-mask mask scroll">
+            {/* Carrousel de Imagenes */}
+            <ul class="product-images js-qv-product-images">
+              {
+                images.map((img, index) => {
+                  const baseUrl = `https://tecnolobbyx.com/tienda/${img.id}`;
+
+                  return (
+                    <li class="thumb-container js-thumb-container">
+                      <img
+                        class={`thumb js-thumb ${index === 0 ? "selected js-thumb-selected" : ""}`}
+                        data-image-medium-src={`${baseUrl}-medium_default/${productSlug}.jpg`}
+                        data-image-large-src={`${baseUrl}-large_default/${productSlug}.jpg`}
+                        src={`${baseUrl}-small_default/${productSlug}.jpg`}
+                        alt={product.name || "Imagen de producto"}
+                        title={product.name || "Imagen de producto"}
+                        loading="lazy"
+                        width="98"
+                        height="98"
+                      />
+                    </li>
+                  );
+                })
+              }
+            </ul>
+            {/* Carrousel de Imagenes */}
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <h1 class="h1">{name}</h1>
+
+      <div class="product-prices js-product-prices caja-precio">
+        <div id="pago-eft">
+          {showEftBlock && (
+          <div class="pago-eft-cont">
+            <p>{formatCurrency(precioEfectivoNum)} -{discountPercentEfectivo}% OFF</p>
+          </div>
+          <p class="pago-eft-txt">
+            {textEfectivo}
+          </p>
+          )}
+        </div>
+
+        <div id="precio-eft" class="product-price h5">
+          <div class="current-price">
+            <span class="current-price-value">
+              {formatCurrency(rawPrice)}
+            </span>
+            <p class="subtitlePriceProduct">Precio de Lista (Credito 1 Pago)</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="cajaMostrarPrecios">
+        <div class="iconPago">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            class="bi bi-credit-card"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"
+            >
+            </path>
+            <path
+              d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"
+            ></path>
+          </svg>
+        </div>
+        <div class="body">
+          <p style="margin: 0;">Medios de pago</p>
+          <a href="#" id="showModalBtn" class="mostrarPrecios">
+            Ver todos los medios de pago
+          </a>
+        </div>
+      </div>
+
+      <div id="modal" class="modal modal-precios" style="display: none;">
+        <div class="modal-content">
+          <span class="close-btn" id="closeModalBtn">×</span>
+          <h2>Listado de Precios</h2>
+          <ul>
+            <li>
+              <span class="price" style="font-size: 20px;color: #00a650;">
+                {formatCurrency(precioEfectivoNum)}
+                <span style="font-size: 15px;">-{discountPercentEfectivo}% OFF</span>
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Efectivo - Transferencia
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="https://d28hi93gr697ol.cloudfront.net/_global/checkout/payment_efectivo.png"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 20px;"> {formatCurrency(rawPrice)} </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Deposito bancario - Si eres del interior es la
+                opción de pago mas conveniente, no contempla el gasto de
+                envío.
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="https://d28hi93gr697ol.cloudfront.net/_global/checkout/payment_transferencia.png"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 20px;">
+                {formatCurrency(precioDebito)} - Debito
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Debito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 20px;">
+                {formatCurrency(precioDebito)} - Ualá Prepaga
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con tu prepaga Ualá!
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="https://tecnolobbyx.com/tienda/img/cms/uala.png"
+                  style="width: 100%;vertical-align: middle;"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 20px;">
+                {formatCurrency(precioDebito)} - Credito 1 Pago
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                Cuota Simple 3 - Cuotas Fijas de
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(cuota3)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="http://tecnolobbyx.com/tienda/img/cms/CuotaSimple.jpg"
+                  style="width: 100%;vertical-align: middle;"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                Cuota Simple 6 - Cuotas Fijas de
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(cuota6)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="http://tecnolobbyx.com/tienda/img/cms/CuotaSimple.jpg"
+                  style="width: 100%;vertical-align: middle;"
+                />
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between;" id="botones-compra-externa">
+        <a class="prod-wpp-link" href={whatsappUrl} target="_blank" style="display: inline-block;"></a>
+      </div>
+      <script is:inline src="https://tecnolobbyx.com/tienda/themes/Xiaomi/assets/js/funciones.js"></script>
+    </div>
+  </div>
+  <div class="row product-container js-product-container">
+    <div class="tabs">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          <a
+            class="nav-link js-product-nav-active active"
+            data-toggle="tab"
+            href="#description"
+            role="tab"
+            aria-controls="description"
+            aria-selected="true"
+            aria-expanded="true">Descripción</a
+          >
+        </li>
+      </ul>
+
+      <div class="tab-content" id="tab-content" style="max-height: 50vh; overflow-y: auto;">
+        <div
+          class="tab-pane fade js-product-tab-active active in"
+          id="description"
+          role="tabpanel"
+          aria-expanded="true"
+        >
+          <div class="product-description" set:html={product.description} />
+        </div>
+      </div>
+    </div>
+  </div>
+  <script is:inline src="https://tecnolobbyx.com/theme.js"></script>
+  <script>
+    function initProductGallery() {
+      // 1. Elementos de la página principal
+      const mainCover = document.querySelector('.js-qv-product-cover') as HTMLImageElement;
+      const thumbs = document.querySelectorAll('.js-thumb');
+      const openModalBtn = document.querySelector('.product-cover'); // Clic en la foto principal para ampliar
+      
+      // 2. Elementos del Modal de Imágenes
+      const imageModal = document.getElementById('product-modal');
+      const modalCover = document.querySelector('.js-modal-product-cover') as HTMLImageElement;
+      const modalThumbs = document.querySelectorAll('.js-modal-thumb');
+
+      // --- LÓGICA DE GALERÍA PRINCIPAL ---
+      thumbs.forEach(thumb => {
+        thumb.addEventListener('click', (e) => {
+          const target = e.currentTarget as HTMLImageElement;
+          const mediumSrc = target.getAttribute('data-image-medium-src');
+          
+          if (mainCover && mediumSrc) {
+            mainCover.src = mediumSrc;
+          }
+
+          thumbs.forEach(t => t.classList.remove('selected', 'js-thumb-selected'));
+          target.classList.add('selected', 'js-thumb-selected');
+        });
+      });
+
+      // --- LÓGICA DE APERTURA DE MODAL ---
+      if (openModalBtn && imageModal) {
+        openModalBtn.addEventListener('click', () => {
+          imageModal.classList.add('in');
+          imageModal.style.display = 'block';
+          document.body.classList.add('modal-open');
+          
+          // Sincronizar la imagen del modal con la que está puesta afuera
+          if (mainCover && modalCover) {
+             modalCover.src = mainCover.src.replace('medium_default', 'large_default');
+          }
+        });
+      }
+
+      // --- LÓGICA DE MINIATURAS DENTRO DEL MODAL ---
+      modalThumbs.forEach(mThumb => {
+        mThumb.addEventListener('click', (e) => {
+          const target = e.currentTarget as HTMLImageElement;
+          const largeSrc = target.getAttribute('data-image-large-src');
+          
+          if (modalCover && largeSrc) {
+            modalCover.src = largeSrc;
+          }
+
+          modalThumbs.forEach(t => t.classList.remove('selected'));
+          target.classList.add('selected');
+        });
+      });
+
+      // --- CERRAR MODAL AL CLICKEAR FUERA ---
+      window.addEventListener('click', (e) => {
+        if (e.target === imageModal) {
+          imageModal.classList.remove('in');
+          imageModal.style.display = 'none';
+          document.body.classList.remove('modal-open');
+        }
+      });
+    }
+
+    // Inicializar
+    initProductGallery();
+    // Re-inicializar si usas transiciones de Astro
+    document.addEventListener('astro:after-swap', initProductGallery);
+  </script>
+
+  <style>
+    /* Estilos básicos para que las miniaturas se vean seleccionadas */
+    .thumb.selected, .js-modal-thumb.selected {
+      border: 2px solid #24b9d7 !important;
+      opacity: 1 !important;
+    }
+    .product-cover {
+      cursor: zoom-in;
+    }
+    /* El modal de imágenes de PrestaShop suele ser flex o block */
+    #product-modal.in {
+      display: block;
+      background: rgba(0,0,0,0.8);
+    }
+  </style>
+  <script>
+    // Recuperamos datos de Astro para usarlos en el cliente
+    const PRODUCT_ID = "{id}"; 
+    const CATEGORY_ID = parseInt("{categoryId}"); 
+
+    // Grupos definidos en tu lógica [cite: 12, 13]
+    const grupoA = [18, 50, 61, 62];
+    const grupoB = [20, 17, 58];
+
+    const formatCurrency = (value) =>
+      new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(value);
+
+    async function refreshPrices() {
+      try {
+        // 1. Obtener precio real de PrestaShop (puedes usar un endpoint de tu lib/prestashop o un proxy)
+        // Ajusta la URL a tu endpoint real en DonWeb
+        const response = await fetch(`/api/get-current-price?id=${PRODUCT_ID}`);
+        const data = await response.json();
+        const rawPrice = parseFloat(data.price);
+
+        if (isNaN(rawPrice)) return;
+
+        // 2. Re-calcular lógica de negocio [cite: 14, 15, 16, 17, 18, 19]
+        let precioEfectivo = 0;
+        let precioDebito = 0;
+        let cuota3 = 0;
+        let cuota6 = 0;
+        let discountPercentEfectivo = (CATEGORY_ID === 18) ? 30 : 20;
+
+        if (grupoA.includes(CATEGORY_ID)) {
+          precioEfectivo = rawPrice * 0.7;
+          precioDebito = rawPrice * 0.95;
+          cuota3 = (rawPrice * 1.1) / 3;
+          cuota6 = (rawPrice * 1.15) / 6;
+        } else if (grupoB.includes(CATEGORY_ID)) {
+          precioEfectivo = rawPrice * 0.8;
+          precioDebito = rawPrice * 0.8;
+          cuota3 = rawPrice / 3;
+          cuota6 = (rawPrice * 1.1) / 6;
+        }
+
+        // 3. Actualizar el DOM (Elementos visuales)
+        // Precio de Lista 
+        const elLista = document.querySelector('.current-price-value');
+        if (elLista) elLista.innerText = formatCurrency(rawPrice);
+
+        // Bloque Efectivo [cite: 37]
+        const elEftText = document.querySelector('.pago-eft-cont p');
+        if (elEftText) elEftText.innerText = `${formatCurrency(precioEfectivo)} -${discountPercentEfectivo}% OFF`;
+
+        // Modal de Precios - Lista Completa [cite: 43]
+        const modalPrices = document.querySelectorAll('.modal-precios .price');
+        if (modalPrices.length > 0) {
+          modalPrices[0].innerHTML = `${formatCurrency(precioEfectivo)} <span style="font-size: 15px;">-${discountPercentEfectivo}% OFF</span>`; // Efectivo [cite: 43]
+          modalPrices[1].innerText = formatCurrency(rawPrice); // Deposito [cite: 45]
+          modalPrices[2].innerText = `${formatCurrency(precioDebito)} - Debito`; // Debito [cite: 48]
+          modalPrices[3].innerText = `${formatCurrency(precioDebito)} - Ualá Prepaga`; // Ualá [cite: 50]
+          modalPrices[4].innerText = `${formatCurrency(precioDebito)} - Credito 1 Pago`; // 1 Pago [cite: 53]
+          
+          // Cuotas 
+          const cuota3Span = document.querySelector('.modal-precios span[style*="color: rgb(30,159,195)"]');
+          if (cuota3Span) cuota3Span.innerText = formatCurrency(cuota3);
+          
+          // Para la cuota 6 necesitamos un selector específico o recorrer
+          const allBlueSpans = document.querySelectorAll('.modal-precios span[style*="color: rgb(30,159,195)"]');
+          if (allBlueSpans[1]) allBlueSpans[1].innerText = formatCurrency(cuota6);
+        }
+
+      } catch (error) {
+        console.error("Error actualizando precios en tiempo real:", error);
+      }
+    }
+
+    // Ejecutar al cargar y tras transiciones de Astro [cite: 77]
+    refreshPrices();
+    document.addEventListener('astro:after-swap', refreshPrices);
+  </script>
+</LayoutPrincipal>

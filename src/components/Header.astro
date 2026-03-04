@@ -1,0 +1,183 @@
+<header id="header">
+  <div class="header-top">
+    <div class="container">
+      <div class="row">
+        <div class="header-top-right col-md-10 col-sm-12 position-static">
+          <div
+            id="search_widget"
+            class="search-widgets hide"
+            data-search-controller-url="//tecnolobbyx.com/tienda/busqueda"
+          >
+            <div id="link-search-2"></div>
+            <div class="search-bar">
+              <form method="get" action="//tecnolobbyx.com/tienda/busqueda">
+                <span
+                  role="status"
+                  aria-live="polite"
+                  class="ui-helper-hidden-accessible"></span><input
+                  type="text"
+                  name="s"
+                  value=""
+                  placeholder="Buscar en Lobbyx"
+                  class="ui-autocomplete-input"
+                  autocomplete="off"
+                />
+              </form>
+            </div>
+            <div id="link-close"></div>
+            <span class="cancel-btn">Cancelar</span>
+          </div>
+          <ul class="mobile-nav">
+            <li style="display: flex; align-items: center;">
+              <a href="https://tecnolobbyx.com/tienda/" id="link-logo"></a>
+            </li>
+          </ul>
+
+          <ul id="desktop-nav" class="">
+            <li>
+              <a href="https://tecnolobbyx.com/tienda/" id="link-logo"></a>
+            </li>
+            <li id="categorias-btn">
+              <a class="no-logo" style="cursor: pointer;">Categorias</a>
+            </li>
+            <li>
+              <a
+                href="https://tecnolobbyx.com/tienda/content/19-celulares"
+                class="no-logo">Celulares</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://tecnolobbyx.com/tienda/20-smartwatch"
+                class="no-logo">Smartwatch</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://tecnolobbyx.com/tienda/17-auriculares"
+                class="no-logo">Auriculares</a
+              >
+            </li>
+          </ul>
+          <a
+            href="https://api.whatsapp.com/send/?phone=5493513578565&text=Hola+Lobbyx%21+Queria+consultarte+sobre...&type=phone_number&app_absent=0"
+            class="cont-boton-wpp"
+            target="_blank"></a>
+        </div>
+      </div>
+      <div
+        id="mobile_top_menu_wrapper"
+        class="row hidden-md-up"
+        style="display:none;"
+      >
+        <div class="js-top-menu mobile" id="_mobile_top_menu"></div>
+        <div class="js-top-menu-bottom">
+          <div id="_mobile_currency_selector"></div>
+          <div id="_mobile_language_selector"></div>
+          <div id="_mobile_contact_link"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="arbol-cat">
+    <div class="block-categories">
+      <ul class="category-top-menu">
+        <li>
+          <a
+            class="text-uppercase h6"
+            href="https://tecnolobbyx.com/tienda/2-tienda">Tienda</a
+          >
+        </li>
+        <li>
+          <ul class="category-sub-menu">
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/10-accesorios"
+                  >Accesorios</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/17-auriculares"
+                  >Auriculares</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/18-celulares"
+                  >Celulares</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/62-consolas">Consolas</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/19-electrodomesticos"
+                  >Electrodomesticos</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/50-notebooks"
+                  >Notebooks</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/58-parlantes"
+                  >Parlantes</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/20-smartwatch"
+                  >Smartwatch</a
+                >
+              </div>
+            </li>
+            <li data-depth="0">
+              <div>
+                <a href="https://tecnolobbyx.com/tienda/61-tablets">Tablets</a>
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const categoriasBtn = document.getElementById("categorias-btn");
+      const arbolCat = document.querySelector("#arbol-cat .block-categories");
+
+      categoriasBtn.addEventListener("click", (event) => {
+        event.stopPropagation(); // Evita que el clic se propague hacia el documento
+        arbolCat.classList.toggle("active"); // Agrega o quita la clase active
+        categoriasBtn.classList.toggle("active"); // Agrega o quita la clase active
+      });
+
+      // Detecta clics fuera del elemento #arbol-cat .block-categories
+      document.addEventListener("click", (event) => {
+        if (
+          !arbolCat.contains(event.target) &&
+          !categoriasBtn.contains(event.target)
+        ) {
+          arbolCat.classList.remove("active");
+          categoriasBtn.classList.remove("active");
+        }
+      });
+    });
+  </script>
+</header>
