@@ -13,7 +13,7 @@ export async function getStaticPaths() {
     return product.active === "1" && product.id_category_default === "18";
   });
 
-  const paths = [];
+  const paths: any[] = [];
 
   for (const product of filteredProducts) {
     try {
@@ -26,7 +26,9 @@ export async function getStaticPaths() {
           brand: brandSlug, 
           name: product.link_rewrite 
         },
-        props: { productId: product.id }
+        props: {
+          product: product,
+        }
       });
     } catch (e) {
       console.error(`Error procesando producto ID ${product.id}:`, e);
