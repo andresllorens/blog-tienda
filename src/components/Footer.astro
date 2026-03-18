@@ -1,7 +1,15 @@
+---
+import {Image} from "astro:assets";
+---
 <footer id="footer" class="js-footer">
   <div class="row footer">
     <div class="col-md-7">
-      <img src="https://tecnolobbyx.com/tienda/img/logo-simple.png" />
+      <Image
+        src="https://tecnolobbyx.com/tienda/img/logo-simple.png"
+        alt="Logo lobbyx"
+        width={53}
+        height={53}
+      />
       <div class="row footer">
         <div class="col-md-5">
           <h5>MENU</h5>
@@ -68,9 +76,12 @@
             href="http://qr.afip.gob.ar/?qr=BlOt24OGCEOzS-TRG3BEJw,,"
             target="_F960AFIPInfo"
           >
-            <img
+            <Image
               src="https://www.afip.gob.ar/images/f960/DATAWEB.jpg"
-              border="0"
+              alt="ARCA logo"
+              width={99}
+              height={135}
+              style="border: 0;"
             />
           </a>
         </div>

@@ -11,5 +11,10 @@ export default defineConfig({
   // Asegura que se generen archivos HTML puros
   output: 'static',
 
+  image: {
+    // Reemplaza 'tu-prestasop.com' con el dominio real de tu backend
+    domains: ['https://tecnolobbyx.com'], 
+  },
+
   integrations: [sitemap()]
 });

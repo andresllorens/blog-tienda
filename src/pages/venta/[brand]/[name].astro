@@ -1,8 +1,9 @@
 ---
-import { getProductById, getProducts } from "../../../lib/prestashop";
+import { getProducts } from "../../../lib/prestashop";
 import LayoutPrincipal from "../../../layouts/LayoutPrincipal.astro";
 import ModalPedido from "../../../components/ModalPedido.astro";
 import { getImageUrl } from "../../../lib/utils";
+import { Image } from "astro:assets";
 
 // 1. Generar todas las rutas posibles en el momento del 'build'
 export async function getStaticPaths() {
@@ -19,16 +20,19 @@ export async function getStaticPaths() {
     try {
       // Validamos que manufacturer_name exista para evitar errores de string [cite: 7]
       const brandName = product.manufacturer_name || "generico";
-      const brandSlug = brandName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      
+      const brandSlug = brandName
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+
       paths.push({
-        params: { 
-          brand: brandSlug, 
-          name: product.link_rewrite 
+        params: {
+          brand: brandSlug,
+          name: product.link_rewrite,
         },
         props: {
           product: product,
-        }
+        },
       });
     } catch (e) {
       console.error(`Error procesando producto ID ${product.id}:`, e);
@@ -50,7 +54,7 @@ const formatCurrency = (value: number | bigint) =>
 // 2. Obtener la data específica para ESTE producto
 const { product } = Astro.props;
 if (!product) {
-  return Astro.redirect('/404');
+  return Astro.redirect("/404");
 }
 
 // Extraer variables del objeto product
@@ -87,12 +91,7 @@ let cuota12 = precioRecargo12 / 12;
 
 //Efectivo
 const discountPercentEfectivo = categoryId === 18 ? 30 : 20;
-const textEfectivo =
-  categoryId === 18
-    ? "Pagando en Efectivo - Envio Express Gratis en Cordoba"
-    : "Pagando en Efectivo, Transferencia o Debito";
 const precioEfectivoNum = rawPrice * (1 - discountPercentEfectivo / 100);
-const showEftBlock = [17, 18, 20].includes(categoryId);
 
 //Imagenes
 const mainImageId = product.id_default_image ?? null;
@@ -103,6 +102,28 @@ const images = product.associations.images || [];
 const nameForWhatsapp = name.replace(/ /g, "+");
 const whatsappNumber = "5493513473549";
 const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=Hola+Lobbyx%21+Queria+consultarte+sobre+${nameForWhatsapp}&type=phone_number&app_absent=0`;
+
+// Lógica para la imagen (PrestaShop usa una estructura de carpetas basada en el ID)
+
+const jsonLd = {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": name,
+  "image": [mainImage],
+  "description": meta_description,
+  "sku": product.id.toString(),
+  "brand": {
+    "@type": "Brand",
+    "name": product.manufacturer_name
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": Astro.url.href,
+    "priceCurrency": "ARS", // Ajustar según tu moneda
+    "price": parseFloat(product.price).toFixed(2),
+    "itemCondition": "https://schema.org/NewCondition",
+  }
+};
 ---
 
 <LayoutPrincipal title={name} meta_description={meta_description}>
@@ -144,12 +165,16 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
         <div class="images-container js-images-container">
           <div class="product-cover">
             {/* imagen principal */}
-            <img
+            <Image
               class="js-qv-product-cover img-fluid"
               src={mainImage}
               alt={productSlug}
               title={productSlug}
-              loading="lazy"
+              width={800}
+              height={800}
+              loading="eager"
+              fetchpriority="high"
+              quality="mid"
             />
             {/* imagen principal */}
           </div>
@@ -163,7 +188,7 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
 
                   return (
                     <li class="thumb-container js-thumb-container">
-                      <img
+                      <Image
                         class={`thumb js-thumb ${index === 0 ? "selected js-thumb-selected" : ""}`}
                         data-image-medium-src={`${baseUrl}-medium_default/${productSlug}.jpg`}
                         data-image-large-src={`${baseUrl}-large_default/${productSlug}.jpg`}
@@ -188,18 +213,30 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
       <h1 class="h1" style="text-align: center;">{name}</h1>
       <div class="product-info-banner">
         <div class="info-item">
-          <img
+          <Image
             src="https://tecnolobbyx.com/tienda/img/garantia.svg"
             alt="Garantía"
+            width={24}
+            height={24}
           />
           <p>Garantía <br /> de 2 años</p>
         </div>
         <div class="info-item">
-          <img src="https://tecnolobbyx.com/tienda/img/envio.svg" alt="Envío" />
+          <Image
+            src="https://tecnolobbyx.com/tienda/img/envio.svg"
+            alt="Envío"
+            width={24}
+            height={24}
+          />
           <p>Envío Express <br /> Gratis</p>
         </div>
         <div class="info-item">
-          <img src="https://tecnolobbyx.com/tienda/img/local.svg" alt="Local" />
+          <Image
+            src="https://tecnolobbyx.com/tienda/img/local.svg"
+            alt="Local"
+            width={24}
+            height={24}
+          />
           <p>Local Físico <br /> en Córdoba</p>
         </div>
       </div>
@@ -291,8 +328,11 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 Pagando con Efectivo - Transferencia
               </p>
               <div class="shipping_option_icon">
-                <img
+                <Image
                   src="https://d28hi93gr697ol.cloudfront.net/_global/checkout/payment_efectivo.png"
+                  alt="Efectivo"
+                  width={60}
+                  height={60}
                 />
               </div>
             </li>
@@ -305,8 +345,11 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 pago.
               </p>
               <div class="shipping_option_icon">
-                <img
+                <Image
                   src="https://d28hi93gr697ol.cloudfront.net/_global/checkout/payment_transferencia.png"
+                  alt="Lista"
+                  width={60}
+                  height={60}
                 />
               </div>
             </li>
@@ -319,9 +362,12 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 precio de lista.
               </p>
               <div class="shipping_option_icon">
-                <img
+                <Image
                   src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
+                  alt="Debito"
+                  width={60}
+                  height={60}
                 />
               </div>
             </li>
@@ -336,9 +382,12 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 Pagando con Credito Visa o Mastercard!
               </p>
               <div class="shipping_option_icon">
-                <img
+                <Image
                   src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
+                  alt="Cuotas 3"
+                  width={60}
+                  height={60}
                 />
               </div>
             </li>
@@ -353,9 +402,12 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 Pagando con Credito Visa o Mastercard!
               </p>
               <div class="shipping_option_icon">
-                <img
+                <Image
                   src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
+                  alt="Cuotas 6"
+                  width={60}
+                  height={60}
                 />
               </div>
             </li>
@@ -370,9 +422,12 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 Pagando con Credito Visa o Mastercard!
               </p>
               <div class="shipping_option_icon">
-                <img
+                <Image
                   src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
+                  alt="Cuotas 9"
+                  width={60}
+                  height={60}
                 />
               </div>
             </li>
@@ -387,9 +442,12 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 Pagando con Credito Visa o Mastercard!
               </p>
               <div class="shipping_option_icon">
-                <img
+                <Image
                   src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
+                  alt="Cuotas 12"
+                  width={60}
+                  height={60}
                 />
               </div>
             </li>
@@ -557,6 +615,11 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
       line-height: 1.2;
       font-weight: 600;
       color: #333;
+    }
+
+    .img-fluid {
+      width: 100%;
+      height: auto;
     }
 
     /* Ajuste para móviles */
@@ -772,4 +835,5 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
     refreshPrices();
     document.addEventListener("astro:after-swap", refreshPrices);
   </script>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 </LayoutPrincipal>
