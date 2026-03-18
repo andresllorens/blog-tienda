@@ -1,22 +1,43 @@
 ---
-import { getProductById, getProducts } from "../../lib/prestashop";
-import LayoutPrincipal from "../../layouts/LayoutPrincipal.astro";
-import { getImageUrl } from "../../lib/utils";
+import { getProductById, getProducts } from "../../../lib/prestashop";
+import LayoutPrincipal from "../../../layouts/LayoutPrincipal.astro";
+import ModalPedido from "../../../components/ModalPedido.astro";
+import { getImageUrl } from "../../../lib/utils";
 
 // 1. Generar todas las rutas posibles en el momento del 'build'
 export async function getStaticPaths() {
   const products = await getProducts();
-  return products.map((product) => ({
-    params: { id: product.id.toString() },
-  }));
+
+  // Filtro inicial por activos y categoría 18 [cite: 20]
+  const filteredProducts = products.filter((product) => {
+    return product.active === "1" && product.id_category_default === "18";
+  });
+
+  const paths = [];
+
+  for (const product of filteredProducts) {
+    try {
+      // Validamos que manufacturer_name exista para evitar errores de string [cite: 7]
+      const brandName = product.manufacturer_name || "generico";
+      const brandSlug = brandName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
+      paths.push({
+        params: { 
+          brand: brandSlug, 
+          name: product.link_rewrite 
+        },
+        props: { productId: product.id }
+      });
+    } catch (e) {
+      console.error(`Error procesando producto ID ${product.id}:`, e);
+    }
+  }
+
+  return paths;
 }
-// // 1. Generar ruta para 821 preubas
-// export async function getStaticPaths() {
-//   return [{ params: { id: "821" } }];
-// }
 
 // Funcioines auxiliares
-const formatCurrency = (value) =>
+const formatCurrency = (value: number | bigint) =>
   new Intl.NumberFormat("es-AR", {
     style: "currency",
     currency: "ARS",
@@ -25,60 +46,49 @@ const formatCurrency = (value) =>
   }).format(value);
 
 // 2. Obtener la data específica para ESTE producto
-const { id } = Astro.params;
-const product = await getProductById(id);
+const { product } = Astro.props;
+if (!product) {
+  return Astro.redirect('/404');
+}
+
+// Extraer variables del objeto product
+const id = product.id;
 const productSlug = product.link_rewrite;
 const price = product.price ? parseFloat(product.price).toFixed(2) : "0.00";
 const name = product.name ?? "Producto sin nombre";
 const meta_description = product.meta_description ?? "";
-const meta_keywords = product.meta_keywords ?? "";
 const categoryId = parseInt(product.id_category_default);
-const description = product.description ?? "Sin descripción disponible.";
 
 // Precios
 const rawPrice = parseFloat(price);
 // Definimos variables de salida
-let porcDescuento = "";
-let precioEfectivo = 0;
-let precioDebito = 0;
-let cuota3 = 0;
-let cuota3SInteres = rawPrice / 3;
-let cuota6 = 0;
 
-// Grupo A: Celulares, Notebooks, tablets, consolas
-const grupoA = [18, 50, 61, 62];
-// Grupo B: SmartWatches, parlantes, auriculares
-const grupoB = [20, 17, 58];
+let porcDescuento = "-30% OFF";
+let precioEfectivo = rawPrice * 0.7;
+let precioDebito = rawPrice * 0.95;
 
-if (grupoA.includes(categoryId)) {
-  porcDescuento = "-30% OFF";
-  precioEfectivo = rawPrice * 0.7;
-  precioDebito = rawPrice * 0.95;
-  
-  // 3 Cuotas con recargo del 10%
-  const precioRecargo3 = rawPrice * 1.1;
-  cuota3 = precioRecargo3 / 3;
-  
-  // 6 Cuotas con recargo del 15%
-  const precioRecargo6 = rawPrice * 1.15;
-  cuota6 = precioRecargo6 / 6;
+// 3 Cuotas con recargo del 12%
+const precioRecargo3 = rawPrice * 1.12;
+let cuota3 = precioRecargo3 / 3;
 
-} else if (grupoB.includes(categoryId)) {
-  porcDescuento = "-20% OFF";
-  precioEfectivo = rawPrice * 0.8;
-  precioDebito = rawPrice * 0.8;
-  
-  // 3 Cuotas sin recargo (precio lista)
-  cuota3 = rawPrice / 3;
-  
-  // 6 Cuotas con recargo del 10%
-  const precioRecargo6 = rawPrice * 1.1;
-  cuota6 = precioRecargo6 / 6;
-}
+// 6 Cuotas con recargo del 1.17%
+const precioRecargo6 = rawPrice * 1.17;
+let cuota6 = precioRecargo6 / 6;
+
+// 9 Cuotas con recargo del 30%
+const precioRecargo9 = rawPrice * 1.3;
+let cuota9 = precioRecargo9 / 9;
+
+// 12 Cuotas con recargo del 35%
+const precioRecargo12 = rawPrice * 1.35;
+let cuota12 = precioRecargo12 / 12;
 
 //Efectivo
 const discountPercentEfectivo = categoryId === 18 ? 30 : 20;
-const textEfectivo = categoryId === 18 ? "Pagando en Efectivo - Envio Express Gratis en Cordoba" : "Pagando en Efectivo, Transferencia o Debito";
+const textEfectivo =
+  categoryId === 18
+    ? "Pagando en Efectivo - Envio Express Gratis en Cordoba"
+    : "Pagando en Efectivo, Transferencia o Debito";
 const precioEfectivoNum = rawPrice * (1 - discountPercentEfectivo / 100);
 const showEftBlock = [17, 18, 20].includes(categoryId);
 
@@ -88,16 +98,12 @@ const mainImage = await getImageUrl(id, mainImageId);
 const images = product.associations.images || [];
 
 //Whatsapp
-const nameForWhatsapp = name.replace(/ /g, '+');
+const nameForWhatsapp = name.replace(/ /g, "+");
 const whatsappNumber = "5493513473549";
 const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=Hola+Lobbyx%21+Queria+consultarte+sobre+${nameForWhatsapp}&type=phone_number&app_absent=0`;
 ---
 
-<LayoutPrincipal
-  title={name}
-  meta_description={meta_description}
-  keywords={meta_keywords}
->
+<LayoutPrincipal title={name} meta_description={meta_description}>
   <div class="row product-container js-product-container">
     <div class="col-md-6">
       <section class="page-content" id="content">
@@ -150,7 +156,7 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
             {/* Carrousel de Imagenes */}
             <ul class="product-images js-qv-product-images">
               {
-                images.map((img, index) => {
+                images.map((img: { id: any }, index: number) => {
                   const baseUrl = `https://tecnolobbyx.com/tienda/${img.id}`;
 
                   return (
@@ -177,52 +183,91 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
       </section>
     </div>
     <div class="col-md-6">
-      <h1 class="h1">{name}</h1>
-
-      <div class="product-prices js-product-prices caja-precio">
-        <div id="pago-eft">
-          {showEftBlock && (
-          <div class="pago-eft-cont">
-            <p>{formatCurrency(precioEfectivoNum)} -{discountPercentEfectivo}% OFF</p>
-          </div>
-          <p class="pago-eft-txt">
-            {textEfectivo}
-          </p>
-          )}
+      <h1 class="h1" style="text-align: center;">{name}</h1>
+      <div class="product-info-banner">
+        <div class="info-item">
+          <img
+            src="https://tecnolobbyx.com/tienda/img/garantia.svg"
+            alt="Garantía"
+          />
+          <p>Garantía <br /> de 2 años</p>
         </div>
-
-        <div id="precio-eft" class="product-price h5">
-          <div class="current-price">
-            <span class="current-price-value">
-              {formatCurrency(rawPrice)}
-            </span>
-            <p class="subtitlePriceProduct">Precio de Lista (Credito 1 Pago)</p>
-          </div>
+        <div class="info-item">
+          <img src="https://tecnolobbyx.com/tienda/img/envio.svg" alt="Envío" />
+          <p>Envío Express <br /> Gratis</p>
+        </div>
+        <div class="info-item">
+          <img src="https://tecnolobbyx.com/tienda/img/local.svg" alt="Local" />
+          <p>Local Físico <br /> en Córdoba</p>
         </div>
       </div>
 
-      <div id="cajaMostrarPrecios">
-        <div class="iconPago">
+      <div class="price-container">
+        <div class="price-card card-efectivo">
+          <div class="price-header">
+            <span class="main-price" id="precio-efectivo-val">
+              {formatCurrency(precioEfectivo)}
+            </span>
+            <span class="discount-tag" id="descuento-val">
+              {porcDescuento}
+            </span>
+          </div>
+          <p class="price-footer">
+            Pagando en Efectivo - Envío Express Gratis en Córdoba
+          </p>
+          <p class="price-footer">
+            <span class="secondary-price" id="precio-lista-val"
+              >{formatCurrency(rawPrice)}</span
+            > Precio de Lista (Crédito 1 Pago)
+          </p>
+          <p class="price-footer">
+            o 6 cuotas de {formatCurrency(cuota6)} con Visa y Mastercard
+          </p>
+        </div>
+      </div>
+
+      <div
+        style="display: flex; justify-content: start; gap: 15px;"
+        id="botones-compra-externa"
+      >
+        <ModalPedido
+          productName={name}
+          precioEfectivo={precioEfectivo}
+          precioLista={rawPrice}
+          precioDebito={precioDebito}
+          cuota3={cuota3}
+          cuota6={cuota6}
+          cuota9={cuota9}
+          cuota12={cuota12}
+        />
+        <a
+          class="prod-wpp-link"
+          href={whatsappUrl}
+          target="_blank"
+          style="display: inline-block;"></a>
+      </div>
+
+      <div id="cajaMostrarPrecios" class="payment-methods-box">
+        <div class="icon-pago">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
+            width="22"
+            height="22"
             fill="currentColor"
             class="bi bi-credit-card"
             viewBox="0 0 16 16"
           >
             <path
               d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"
-            >
-            </path>
+            ></path>
             <path
               d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"
             ></path>
           </svg>
         </div>
-        <div class="body">
-          <p style="margin: 0;">Medios de pago</p>
-          <a href="#" id="showModalBtn" class="mostrarPrecios">
+        <div class="payment-body">
+          <p class="payment-title">Medios de pago</p>
+          <a href="#" id="showModalBtn" class="mostrar-precios-link">
             Ver todos los medios de pago
           </a>
         </div>
@@ -236,7 +281,9 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
             <li>
               <span class="price" style="font-size: 20px;color: #00a650;">
                 {formatCurrency(precioEfectivoNum)}
-                <span style="font-size: 15px;">-{discountPercentEfectivo}% OFF</span>
+                <span style="font-size: 15px;"
+                  >-{discountPercentEfectivo}% OFF</span
+                >
               </span>
               <p style="padding: 0;margin: 0;font-size: 12px;">
                 Pagando con Efectivo - Transferencia
@@ -248,11 +295,12 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
               </div>
             </li>
             <li>
-              <span class="price" style="font-size: 20px;"> {formatCurrency(rawPrice)} </span>
+              <span class="price" style="font-size: 20px;">
+                {formatCurrency(rawPrice)}
+              </span>
               <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Deposito bancario - Si eres del interior es la
-                opción de pago mas conveniente, no contempla el gasto de
-                envío.
+                Precio de Lista. Pagando con deposito bancario o Credito en 1
+                pago.
               </p>
               <div class="shipping_option_icon">
                 <img
@@ -265,35 +313,8 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
                 {formatCurrency(precioDebito)} - Debito
               </span>
               <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Debito Visa o Mastercard!
-              </p>
-              <div class="shipping_option_icon">
-                <img
-                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
-                  style="width: 100%;vertical-align: middle;"
-                />
-              </div>
-            </li>
-            <li>
-              <span class="price" style="font-size: 20px;">
-                {formatCurrency(precioDebito)} - Ualá Prepaga
-              </span>
-              <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con tu prepaga Ualá!
-              </p>
-              <div class="shipping_option_icon">
-                <img
-                  src="https://tecnolobbyx.com/tienda/img/cms/uala.png"
-                  style="width: 100%;vertical-align: middle;"
-                />
-              </div>
-            </li>
-            <li>
-              <span class="price" style="font-size: 20px;">
-                {formatCurrency(precioDebito)} - Credito 1 Pago
-              </span>
-              <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Credito Visa o Mastercard!
+                Pagando con Debito Visa o Mastercard! 5% de descuento sobre
+                precio de lista.
               </p>
               <div class="shipping_option_icon">
                 <img
@@ -304,7 +325,7 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
             </li>
             <li>
               <span class="price" style="font-size: 15px;">
-                Cuota Simple 3 - Cuotas Fijas de
+                3 Cuotas Fijas de
                 <span style="font-size: 20px; color: rgb(30,159,195)"
                   >{formatCurrency(cuota3)}</span
                 >
@@ -314,14 +335,14 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
               </p>
               <div class="shipping_option_icon">
                 <img
-                  src="http://tecnolobbyx.com/tienda/img/cms/CuotaSimple.jpg"
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
                 />
               </div>
             </li>
             <li>
               <span class="price" style="font-size: 15px;">
-                Cuota Simple 6 - Cuotas Fijas de
+                6 Cuotas Fijas de
                 <span style="font-size: 20px; color: rgb(30,159,195)"
                   >{formatCurrency(cuota6)}</span
                 >
@@ -331,7 +352,41 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
               </p>
               <div class="shipping_option_icon">
                 <img
-                  src="http://tecnolobbyx.com/tienda/img/cms/CuotaSimple.jpg"
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                9 Cuotas Fijas de
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(cuota9)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                12 Cuotas Fijas de
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(cuota12)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <img
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
                 />
               </div>
@@ -339,11 +394,8 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
           </ul>
         </div>
       </div>
-      
-      <div style="display: flex; justify-content: space-between;" id="botones-compra-externa">
-        <a class="prod-wpp-link" href={whatsappUrl} target="_blank" style="display: inline-block;"></a>
-      </div>
-      <script is:inline src="https://tecnolobbyx.com/tienda/themes/Xiaomi/assets/js/funciones.js"></script>
+
+      <script is:inline src="https://tecnolobbyx.com/theme.js"></script>
     </div>
   </div>
   <div class="row product-container js-product-container">
@@ -362,7 +414,11 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
         </li>
       </ul>
 
-      <div class="tab-content" id="tab-content" style="max-height: 50vh; overflow-y: auto;">
+      <div
+        class="tab-content"
+        id="tab-content"
+        style="max-height: 50vh; overflow-y: auto;"
+      >
         <div
           class="tab-pane fade js-product-tab-active active in"
           id="description"
@@ -378,65 +434,74 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
   <script>
     function initProductGallery() {
       // 1. Elementos de la página principal
-      const mainCover = document.querySelector('.js-qv-product-cover') as HTMLImageElement;
-      const thumbs = document.querySelectorAll('.js-thumb');
-      const openModalBtn = document.querySelector('.product-cover'); // Clic en la foto principal para ampliar
-      
+      const mainCover = document.querySelector(
+        ".js-qv-product-cover",
+      ) as HTMLImageElement;
+      const thumbs = document.querySelectorAll(".js-thumb");
+      const openModalBtn = document.querySelector(".product-cover"); // Clic en la foto principal para ampliar
+
       // 2. Elementos del Modal de Imágenes
-      const imageModal = document.getElementById('product-modal');
-      const modalCover = document.querySelector('.js-modal-product-cover') as HTMLImageElement;
-      const modalThumbs = document.querySelectorAll('.js-modal-thumb');
+      const imageModal = document.getElementById("product-modal") || "";
+      const modalCover = document.querySelector(
+        ".js-modal-product-cover",
+      ) as HTMLImageElement;
+      const modalThumbs = document.querySelectorAll(".js-modal-thumb");
 
       // --- LÓGICA DE GALERÍA PRINCIPAL ---
-      thumbs.forEach(thumb => {
-        thumb.addEventListener('click', (e) => {
+      thumbs.forEach((thumb) => {
+        thumb.addEventListener("click", (e) => {
           const target = e.currentTarget as HTMLImageElement;
-          const mediumSrc = target.getAttribute('data-image-medium-src');
-          
+          const mediumSrc = target.getAttribute("data-image-medium-src");
+
           if (mainCover && mediumSrc) {
             mainCover.src = mediumSrc;
           }
 
-          thumbs.forEach(t => t.classList.remove('selected', 'js-thumb-selected'));
-          target.classList.add('selected', 'js-thumb-selected');
+          thumbs.forEach((t) =>
+            t.classList.remove("selected", "js-thumb-selected"),
+          );
+          target.classList.add("selected", "js-thumb-selected");
         });
       });
 
       // --- LÓGICA DE APERTURA DE MODAL ---
       if (openModalBtn && imageModal) {
-        openModalBtn.addEventListener('click', () => {
-          imageModal.classList.add('in');
-          imageModal.style.display = 'block';
-          document.body.classList.add('modal-open');
-          
+        openModalBtn.addEventListener("click", () => {
+          imageModal.classList.add("in");
+          imageModal.style.display = "block";
+          document.body.classList.add("modal-open");
+
           // Sincronizar la imagen del modal con la que está puesta afuera
           if (mainCover && modalCover) {
-             modalCover.src = mainCover.src.replace('medium_default', 'large_default');
+            modalCover.src = mainCover.src.replace(
+              "medium_default",
+              "large_default",
+            );
           }
         });
       }
 
       // --- LÓGICA DE MINIATURAS DENTRO DEL MODAL ---
-      modalThumbs.forEach(mThumb => {
-        mThumb.addEventListener('click', (e) => {
+      modalThumbs.forEach((mThumb) => {
+        mThumb.addEventListener("click", (e) => {
           const target = e.currentTarget as HTMLImageElement;
-          const largeSrc = target.getAttribute('data-image-large-src');
-          
+          const largeSrc = target.getAttribute("data-image-large-src");
+
           if (modalCover && largeSrc) {
             modalCover.src = largeSrc;
           }
 
-          modalThumbs.forEach(t => t.classList.remove('selected'));
-          target.classList.add('selected');
+          modalThumbs.forEach((t) => t.classList.remove("selected"));
+          target.classList.add("selected");
         });
       });
 
       // --- CERRAR MODAL AL CLICKEAR FUERA ---
-      window.addEventListener('click', (e) => {
+      window.addEventListener("click", (e) => {
         if (e.target === imageModal) {
-          imageModal.classList.remove('in');
-          imageModal.style.display = 'none';
-          document.body.classList.remove('modal-open');
+          imageModal.classList.remove("in");
+          imageModal.style.display = "none";
+          document.body.classList.remove("modal-open");
         }
       });
     }
@@ -444,12 +509,13 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
     // Inicializar
     initProductGallery();
     // Re-inicializar si usas transiciones de Astro
-    document.addEventListener('astro:after-swap', initProductGallery);
+    document.addEventListener("astro:after-swap", initProductGallery);
   </script>
 
   <style>
     /* Estilos básicos para que las miniaturas se vean seleccionadas */
-    .thumb.selected, .js-modal-thumb.selected {
+    .thumb.selected,
+    .js-modal-thumb.selected {
       border: 2px solid #24b9d7 !important;
       opacity: 1 !important;
     }
@@ -459,19 +525,174 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
     /* El modal de imágenes de PrestaShop suele ser flex o block */
     #product-modal.in {
       display: block;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
+    }
+    .product-info-banner {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: #f1f1f1; /* Gris claro de la imagen */
+      border-radius: 15px;
+      padding: 10px 5px;
+      margin: 15px 0;
+      font-family: sans-serif;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-item img {
+      width: 24px; /* Ajusta según el tamaño de tus iconos */
+      height: auto;
+    }
+
+    .info-item p {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.2;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* Ajuste para móviles */
+    @media (max-width: 767px) {
+      .product-info-banner {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+      }
+      .info-item p {
+        font-size: 10px;
+      }
+    }
+
+    .price-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .price-card {
+      padding-left: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Barras laterales */
+    .card-efectivo {
+      border-left: 4px solid #28a745; /* Verde */
+    }
+
+    .card-lista {
+      border-left: 4px solid #fd7e14; /* Naranja */
+    }
+
+    .price-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .main-price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #28a745;
+    }
+
+    .secondary-price {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #444;
+      text-decoration: line-through;
+    }
+
+    .discount-tag {
+      color: #28a745;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .price-footer {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    /* Enlace medios de pago */
+    .payment-methods-link {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .payment-methods-link a {
+      color: #007bff;
+      text-decoration: none;
+      margin-left: 5px;
+    }
+
+    .payment-methods-link a:hover {
+      text-decoration: underline;
+    }
+    .payment-methods-box {
+      display: flex;
+      align-items: center; /* Centra verticalmente el icono con el texto */
+      gap: 12px;
+      margin: 25px 0;
+      font-family: "Inter", sans-serif; /* O la que estés usando */
+    }
+
+    .icon-pago {
+      color: #333; /* Color oscuro para el icono */
+      display: flex;
+      align-items: center;
+    }
+
+    .payment-body {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.3;
+    }
+
+    .payment-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .mostrar-precios-link {
+      font-size: 14px;
+      color: #007bff; /* Azul de enlace */
+      text-decoration: underline;
+      transition: color 0.2s ease;
+    }
+
+    .mostrar-precios-link:hover {
+      color: #0056b3;
+      text-decoration: none;
     }
   </style>
   <script>
+    // @ts-nocheck
     // Recuperamos datos de Astro para usarlos en el cliente
-    const PRODUCT_ID = "{id}"; 
-    const CATEGORY_ID = parseInt("{categoryId}"); 
+    const PRODUCT_ID = "{id}";
+    const CATEGORY_ID = parseInt("{categoryId}");
 
     // Grupos definidos en tu lógica [cite: 12, 13]
     const grupoA = [18, 50, 61, 62];
     const grupoB = [20, 17, 58];
 
-    const formatCurrency = (value) =>
+    const formatCurrency = (value: number | bigint) =>
       new Intl.NumberFormat("es-AR", {
         style: "currency",
         currency: "ARS",
@@ -494,7 +715,7 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
         let precioDebito = 0;
         let cuota3 = 0;
         let cuota6 = 0;
-        let discountPercentEfectivo = (CATEGORY_ID === 18) ? 30 : 20;
+        let discountPercentEfectivo = CATEGORY_ID === 18 ? 30 : 20;
 
         if (grupoA.includes(CATEGORY_ID)) {
           precioEfectivo = rawPrice * 0.7;
@@ -509,32 +730,37 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
         }
 
         // 3. Actualizar el DOM (Elementos visuales)
-        // Precio de Lista 
-        const elLista = document.querySelector('.current-price-value');
-        if (elLista) elLista.innerText = formatCurrency(rawPrice);
+        const elEfectivo = document.getElementById("precio-efectivo-val");
+        const elLista = document.getElementById("precio-lista-val");
+        const elDescuento = document.getElementById("descuento-val");
 
-        // Bloque Efectivo [cite: 37]
-        const elEftText = document.querySelector('.pago-eft-cont p');
-        if (elEftText) elEftText.innerText = `${formatCurrency(precioEfectivo)} -${discountPercentEfectivo}% OFF`;
+        if (elEfectivo) elEfectivo.textContent = formatCurrency(precioEfectivo);
+        if (elLista) elLista.textContent = formatCurrency(rawPrice);
+        if (elDescuento)
+          elDescuento.textContent = `-${discountPercentEfectivo}% OFF`;
 
         // Modal de Precios - Lista Completa [cite: 43]
-        const modalPrices = document.querySelectorAll('.modal-precios .price');
+        const modalPrices = document.querySelectorAll(".modal-precios .price");
         if (modalPrices.length > 0) {
           modalPrices[0].innerHTML = `${formatCurrency(precioEfectivo)} <span style="font-size: 15px;">-${discountPercentEfectivo}% OFF</span>`; // Efectivo [cite: 43]
           modalPrices[1].innerText = formatCurrency(rawPrice); // Deposito [cite: 45]
           modalPrices[2].innerText = `${formatCurrency(precioDebito)} - Debito`; // Debito [cite: 48]
           modalPrices[3].innerText = `${formatCurrency(precioDebito)} - Ualá Prepaga`; // Ualá [cite: 50]
           modalPrices[4].innerText = `${formatCurrency(precioDebito)} - Credito 1 Pago`; // 1 Pago [cite: 53]
-          
-          // Cuotas 
-          const cuota3Span = document.querySelector('.modal-precios span[style*="color: rgb(30,159,195)"]');
-          if (cuota3Span) cuota3Span.innerText = formatCurrency(cuota3);
-          
-          // Para la cuota 6 necesitamos un selector específico o recorrer
-          const allBlueSpans = document.querySelectorAll('.modal-precios span[style*="color: rgb(30,159,195)"]');
-          if (allBlueSpans[1]) allBlueSpans[1].innerText = formatCurrency(cuota6);
-        }
 
+          // Cuotas
+          const cuota3Span = document.querySelector(
+            '.modal-precios span[style*="color: rgb(30,159,195)"]',
+          );
+          if (cuota3Span) cuota3Span.innerText = formatCurrency(cuota3);
+
+          // Para la cuota 6 necesitamos un selector específico o recorrer
+          const allBlueSpans = document.querySelectorAll(
+            '.modal-precios span[style*="color: rgb(30,159,195)"]',
+          );
+          if (allBlueSpans[1])
+            allBlueSpans[1].innerText = formatCurrency(cuota6);
+        }
       } catch (error) {
         console.error("Error actualizando precios en tiempo real:", error);
       }
@@ -542,6 +768,6 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
 
     // Ejecutar al cargar y tras transiciones de Astro [cite: 77]
     refreshPrices();
-    document.addEventListener('astro:after-swap', refreshPrices);
+    document.addEventListener("astro:after-swap", refreshPrices);
   </script>
 </LayoutPrincipal>
