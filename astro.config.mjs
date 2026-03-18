@@ -6,7 +6,7 @@ export default defineConfig({
   site: 'https://tecnolobbyx.com',
 
   // Crucial: Esto ajusta todas las rutas internas
-  base: '/venta',
+  base: '/',
 
   // Asegura que se generen archivos HTML puros
   output: 'static',
