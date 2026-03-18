@@ -13,3 +13,16 @@ export async function getProductById(id) {
   const data = await response.json();
   return data.product;
 }
+
+export async function getCategoryById(id) {
+  try {
+    const response = await fetch(`${BASE_URL}/categories/${id}?output_format=JSON&ws_key=${API_KEY}`);
+    const data = await response.json();
+    
+    // PrestaShop devuelve la categoría dentro de data.category
+    return data.category;
+  } catch (error) {
+    console.error(`Error trayendo la categoría ${id}:`, error);
+    return null;
+  }
+}

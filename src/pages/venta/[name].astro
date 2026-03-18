@@ -1,0 +1,147 @@
+---
+import LayoutPrincipal from "../../layouts/LayoutPrincipal.astro";
+import { getCategoryById } from "../../lib/prestashop";
+import { Image } from "astro:assets";
+
+export async function getStaticPaths() {
+  const category = await getCategoryById(18);
+  delete category.associations.products;
+
+  const categories = category.associations.categories;
+
+  category.associations.categories = [];
+
+  for (const cat of categories) {
+    const c = await getCategoryById(cat.id);
+    if (c.active === "1") {
+      category.associations.categories.push(c);
+    }
+  }
+
+  const paths: any[] = [];
+
+  try {
+    // Validamos que manufacturer_name exista para evitar errores de string [cite: 7]
+    const name = category.link_rewrite;
+
+    paths.push({
+      params: {
+        name: name,
+      },
+      props: {
+        category: category,
+      },
+    });
+  } catch (e) {
+    console.error(`Error:`, e);
+  }
+
+  return paths;
+}
+
+// 2. Obtener la data específica para ESTA categoria
+const { category } = Astro.props;
+
+// Extraer variables del objeto category
+const name = category.name;
+const meta_description = category.meta_description;
+---
+
+<LayoutPrincipal title={name} meta_description={meta_description}>
+  <div class="row product-container js-product-container">
+    <section class="brands-section">
+      <h1 class="section-title">Nuestras Marcas</h1>
+      <div class="brands-grid">
+        {
+          category.associations.categories.map((brand) => (
+            <a href={`/celulares/${brand.link_rewrite}`} class="brand-card">
+              <div class="brand-logo-wrapper">
+                <Image
+                  src={`https://tecnolobbyx.com/tienda/img/${brand.link_rewrite}.png`}
+                  alt={`Celulares ${brand.name}`}
+                  width={600}
+                  height={600}
+                />
+              </div>
+              <span class="brand-name">Ver {brand.name}</span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+    <style>
+      <style > .brands-section {
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .section-title {
+        text-align: center;
+        margin-bottom: 30px;
+        font-weight: 700;
+        color: #333;
+      }
+
+      /* Configuración de la cuadrícula */
+      .brands-grid {
+        display: grid;
+        /* Por defecto: 2 columnas (Mobile) */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+
+      /* Cambio a 3 columnas en Desktop (768px o más) */
+      @media (min-width: 768px) {
+        .brands-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 25px;
+        }
+      }
+
+      /* Estilo de la tarjeta individual */
+      .brand-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        text-decoration: none;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .brand-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        border-color: #007bff;
+      }
+
+      .brand-logo-wrapper {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+      }
+
+      .brand-logo-wrapper img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        /* Filtro opcional para que los logos se vean uniformes */
+        filter: grayscale(20%);
+      }
+
+      .brand-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+      }
+    </style>
+  </div>
+</LayoutPrincipal>
