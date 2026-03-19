@@ -1,24 +1,27 @@
 ---
-const { 
-  productName, 
-  precioEfectivo, 
-  precioLista, 
-  precioDebito, 
-  cuota3, 
-  cuota6, 
-  cuota7, 
-  cuota9, 
+const {
+  productName,
+  precioEfectivo,
+  precioLista,
+  precioDebito,
+  cuota3,
+  cuota6,
+  cuota7,
+  cuota9,
   cuota12,
-  phoneNumber = "5493513473549" 
+  phoneNumber = "5493513473549",
 } = Astro.props;
 
 // Helper para formatear moneda dentro del componente
-const f = (val) => new Intl.NumberFormat("es-AR", {
-    style: "currency", currency: "ARS", minimumFractionDigits: 0
-}).format(val);
+const f = (val) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 0,
+  }).format(val);
 ---
 
-<button id="openModal" type="button" class="btn-primary-custom">
+<button id="openModal" type="button" class="btn-primary-custom" style="margin-bottom: 5px;">
   ¡Compra con 30% Off!
 </button>
 
@@ -31,19 +34,41 @@ const f = (val) => new Intl.NumberFormat("es-AR", {
 
     <form id="formPedido">
       <div class="tabs">
-        <label><input type="radio" name="tipoEntrega" value="envio" checked /> Envío</label>
-        <label><input type="radio" name="tipoEntrega" value="retiro" /> Retiro</label>
+        <label
+          ><input type="radio" name="tipoEntrega" value="envio" checked /> Envío</label
+        >
+        <label
+          ><input type="radio" name="tipoEntrega" value="retiro" /> Retiro</label
+        >
       </div>
 
       <div class="form-grid">
-        <input type="text" name="nombre" placeholder="Nombre completo" required />
-        <input type="text" name="cuil" placeholder="CUIL o CUIT o DNIS" required />
-        <input type="tel" name="celular" placeholder="Número de celular" required />
+        <input
+          type="text"
+          name="nombre"
+          placeholder="Nombre completo"
+          required
+        />
+        <input
+          type="text"
+          name="cuil"
+          placeholder="CUIL o CUIT o DNI"
+          required
+        />
+        <input
+          type="tel"
+          name="celular"
+          placeholder="Número de celular"
+          required
+        />
         <input type="email" name="email" placeholder="Email" required />
 
         <select name="pago" id="medioPago" required>
           <option value="" disabled selected>Elegí tu medio de pago</option>
-          <option selected value={`Efectivo/Transferencia (${f(precioEfectivo)})`}>
+          <option
+            selected
+            value={`Efectivo/Transferencia (${f(precioEfectivo)})`}
+          >
             Efectivo/Transferencia: {f(precioEfectivo)} (Descuento aplicado)
           </option>
           <option value={`Débito (${f(precioDebito)})`}>
@@ -61,75 +86,160 @@ const f = (val) => new Intl.NumberFormat("es-AR", {
           <option value={`9 cuotas de ${f(cuota9)} (Total: ${f(cuota9 * 9)})`}>
             9 cuotas fijas de {f(cuota9)} (Total: {f(cuota9 * 9)})
           </option>
-          <option value={`12 cuotas de ${f(cuota12)} (Total: ${f(cuota12 * 12)})`}>
+          <option
+            value={`12 cuotas de ${f(cuota12)} (Total: ${f(cuota12 * 12)})`}
+          >
             12 cuotas fijas de {f(cuota12)} (Total: {f(cuota12 * 12)})
           </option>
         </select>
 
         <div id="camposEnvio">
-          <input type="text" name="direccion" placeholder="Dirección (Calle, n°, barrio)" required />
-          <input type="text" name="localidad" placeholder="Localidad/Ciudad" required />
-          <input type="text" name="cp" placeholder="Código postal (CP)" required />
+          <input
+            type="text"
+            name="direccion"
+            placeholder="Dirección (Calle, n°, barrio)"
+            required
+          />
+          <input
+            type="text"
+            name="localidad"
+            placeholder="Localidad/Ciudad"
+            required
+          />
+          <input
+            type="text"
+            name="cp"
+            placeholder="Código postal (CP)"
+            required
+          />
         </div>
-        
-        <input type="text" name="conociste" placeholder="¿Cómo nos conociste?" />
+
+        <input
+          type="text"
+          name="conociste"
+          placeholder="¿Cómo nos conociste?"
+        />
+        <select name="conociste" id="conociste" required>
+          <option value="" disabled selected>¿Cómo nos conociste?</option>
+          <option value={`Instagram`}> Instagram </option>
+          <option value={`Google`}> Google </option>
+          <option value={`Facebook`}> Facebook </option>
+          <option value={`Recomendacion`}> Recomendación </option>
+          <option value={`Otro`}> Otro </option>
+        </select>
       </div>
 
-      <button type="submit" class="submit-btn">Enviar Pedido por WhatsApp 🚀</button>
+      <button type="submit" class="submit-btn"
+        >Enviar Pedido por WhatsApp 🚀</button
+      >
     </form>
   </div>
 </dialog>
 
 <script is:inline define:vars={{ phoneNumber, productName }}>
-  const modal = document.getElementById('pedidoModal');
-  const openBtn = document.getElementById('openModal');
-  const closeBtn = document.getElementById('closeModal');
-  const form = document.getElementById('formPedido');
+  const modal = document.getElementById("pedidoModal");
+  const openBtn = document.getElementById("openModal");
+  const closeBtn = document.getElementById("closeModal");
+  const form = document.getElementById("formPedido");
   const radioEnvio = document.querySelectorAll('input[name="tipoEntrega"]');
-  const camposEnvio = document.getElementById('camposEnvio');
+  const camposEnvio = document.getElementById("camposEnvio");
 
   openBtn.onclick = () => modal.showModal();
   closeBtn.onclick = () => modal.close();
 
-  radioEnvio.forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      const isEnvio = e.target.value === 'envio';
-      camposEnvio.style.display = isEnvio ? 'flex' : 'none';
-      camposEnvio.querySelectorAll('input').forEach(i => i.required = isEnvio);
+  radioEnvio.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      const isEnvio = e.target.value === "envio";
+      camposEnvio.style.display = isEnvio ? "flex" : "none";
+      camposEnvio
+        .querySelectorAll("input")
+        .forEach((i) => (i.required = isEnvio));
     });
   });
 
   form.onsubmit = (e) => {
     e.preventDefault();
     const data = new FormData(form);
-    const tipo = data.get('tipoEntrega');
-    
-    let baseMsg = tipo === 'envio' 
-      ? `PARA ENVIO\n🚀 Reserva para: ${productName}\n\n👤 Nombre: ${data.get('nombre')}\n💳 Pago: ${data.get('pago')}\n📌 CUIL/CUIT: ${data.get('cuil')}\n📲 Cel: ${data.get('celular')}\n📍 Dir: ${data.get('direccion')}\n🏙️ Ciudad: ${data.get('localidad')}\n📮 CP: ${data.get('cp')}\n📩 Email: ${data.get('email')}\n💜 Origen: ${data.get('conociste')}\n\nGracias por elegir Lobbyx!`
-      : `PARA RETIRO\n🙌🏼 Reserva para: ${productName}\n\n👤 Nombre: ${data.get('nombre')}\n💳 Pago: ${data.get('pago')}\n📌 CUIL/CUIT: ${data.get('cuil')}\n📲 Cel: ${data.get('celular')}\n📩 Email: ${data.get('email')}\n💜 Origen: ${data.get('conociste')}\n\nGracias por confiar en Lobbyx! 🚀`;
+    const tipo = data.get("tipoEntrega");
 
-    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(baseMsg)}`, '_blank');
+    let baseMsg =
+      tipo === "envio"
+        ? `PARA ENVIO\n🚀 Reserva para: ${productName}\n\n👤 Nombre: ${data.get("nombre")}\n💳 Pago: ${data.get("pago")}\n📌 CUIL/CUIT: ${data.get("cuil")}\n📲 Cel: ${data.get("celular")}\n📍 Dir: ${data.get("direccion")}\n🏙️ Ciudad: ${data.get("localidad")}\n📮 CP: ${data.get("cp")}\n📩 Email: ${data.get("email")}\n💜 Origen: ${data.get("conociste")}\n\nGracias por elegir Lobbyx!`
+        : `PARA RETIRO\n🙌🏼 Reserva para: ${productName}\n\n👤 Nombre: ${data.get("nombre")}\n💳 Pago: ${data.get("pago")}\n📌 CUIL/CUIT: ${data.get("cuil")}\n📲 Cel: ${data.get("celular")}\n📩 Email: ${data.get("email")}\n💜 Origen: ${data.get("conociste")}\n\nGracias por confiar en Lobbyx! 🚀`;
+
+    window.open(
+      `https://wa.me/${phoneNumber}?text=${encodeURIComponent(baseMsg)}`,
+      "_blank",
+    );
   };
 </script>
 
 <style>
   .btn-primary-custom {
-    border-radius: 25px; 
-    background-color: #8223FD; 
-    color: white; 
-    border: none; 
-    padding: 12px 24px; 
+    border-radius: 25px;
+    background-color: #8223fd;
+    color: white;
+    border: none;
+    padding: 12px 24px;
     font-weight: bold;
     cursor: pointer;
   }
-  .modal-container { border: none; border-radius: 15px; width: 90%; max-width: 500px; padding: 0; }
-  .modal-container::backdrop { background: rgba(0,0,0,0.6); }
-  .modal-content { padding: 25px; }
-  .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-  .form-grid { display: flex; flex-direction: column; gap: 12px; }
-  #camposEnvio { display: flex; flex-direction: column; gap: 12px; }
-  input, select { padding: 10px; border: 1px solid #ccc; border-radius: 8px; width: 100%; }
-  .submit-btn { background: #25d366; color: white; border: none; padding: 15px; border-radius: 25px; margin-top: 15px; width: 100%; font-weight: bold; cursor: pointer; }
-  .tabs { margin-bottom: 15px; display: flex; gap: 20px; font-weight: 600; }
-  .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+  .modal-container {
+    border: none;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    padding: 0;
+  }
+  .modal-container::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+  .modal-content {
+    padding: 25px;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #camposEnvio {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  input,
+  select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 100%;
+  }
+  .submit-btn {
+    background: #25d366;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 25px;
+    margin-top: 15px;
+    width: 100%;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .tabs {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 20px;
+    font-weight: 600;
+  }
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
 </style>

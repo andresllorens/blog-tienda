@@ -69,7 +69,6 @@ const categoryId = parseInt(product.id_category_default);
 const rawPrice = parseFloat(price);
 // Definimos variables de salida
 
-let porcDescuento = "-30% OFF";
 let precioEfectivo = rawPrice * 0.7;
 let precioDebito = rawPrice * 0.95;
 
@@ -129,6 +128,7 @@ const jsonLd = {
 <LayoutPrincipal title={name} meta_description={meta_description}>
   <div class="row product-container js-product-container">
     <div class="col-md-6">
+      <h1 class="h1" style="text-align: center;">{name}</h1>
       <section class="page-content" id="content">
         {/* Inicio Product Flags */}
         <ul class="product-flags js-product-flags">
@@ -210,7 +210,6 @@ const jsonLd = {
       </section>
     </div>
     <div class="col-md-6">
-      <h1 class="h1" style="text-align: center;">{name}</h1>
       <div class="product-info-banner">
         <div class="info-item">
           <Image
@@ -246,9 +245,6 @@ const jsonLd = {
           <div class="price-header">
             <span class="main-price" id="precio-efectivo-val">
               {formatCurrency(precioEfectivo)}
-            </span>
-            <span class="discount-tag" id="descuento-val">
-              {porcDescuento}
             </span>
           </div>
           <p class="price-footer">
@@ -320,9 +316,6 @@ const jsonLd = {
             <li>
               <span class="price" style="font-size: 20px;color: #00a650;">
                 {formatCurrency(precioEfectivoNum)}
-                <span style="font-size: 15px;"
-                  >-{discountPercentEfectivo}% OFF</span
-                >
               </span>
               <p style="padding: 0;margin: 0;font-size: 12px;">
                 Pagando con Efectivo - Transferencia
@@ -626,7 +619,6 @@ const jsonLd = {
     @media (max-width: 767px) {
       .product-info-banner {
         flex-wrap: wrap;
-        gap: 10px;
         justify-content: center;
       }
       .info-item p {
@@ -650,7 +642,10 @@ const jsonLd = {
 
     /* Barras laterales */
     .card-efectivo {
-      border-left: 4px solid #28a745; /* Verde */
+      border-left: 4px solid;
+      border-image-source: linear-gradient(to bottom, #00d9ff, #c900ff);
+      border-image-slice: 1;
+      padding: 10px;
     }
 
     .card-lista {
@@ -667,7 +662,7 @@ const jsonLd = {
     .main-price {
       font-size: 2rem;
       font-weight: 700;
-      color: #28a745;
+      color: #8223fd;
     }
 
     .secondary-price {
