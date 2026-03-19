@@ -107,21 +107,21 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
 const jsonLd = {
   "@context": "https://schema.org/",
   "@type": "Product",
-  "name": name,
-  "image": [mainImage],
-  "description": meta_description,
-  "sku": product.id.toString(),
-  "brand": {
+  name: name,
+  image: [mainImage],
+  description: meta_description,
+  sku: product.id.toString(),
+  brand: {
     "@type": "Brand",
-    "name": product.manufacturer_name
+    name: product.manufacturer_name,
   },
-  "offers": {
+  offers: {
     "@type": "Offer",
-    "url": Astro.url.href,
-    "priceCurrency": "ARS", // Ajustar según tu moneda
-    "price": parseFloat(product.price).toFixed(2),
-    "itemCondition": "https://schema.org/NewCondition",
-  }
+    url: Astro.url.href,
+    priceCurrency: "ARS", // Ajustar según tu moneda
+    price: parseFloat(product.price).toFixed(2),
+    itemCondition: "https://schema.org/NewCondition",
+  },
 };
 ---
 
@@ -181,7 +181,7 @@ const jsonLd = {
 
           <div class="js-qv-mask mask scroll">
             {/* Carrousel de Imagenes */}
-            <ul class="product-images js-qv-product-images">
+            <ul class="product-images js-qv-product-images" style="overflow-x: scroll;">
               {
                 images.map((img: { id: any }, index: number) => {
                   const baseUrl = `https://tecnolobbyx.com/tienda/${img.id}`;
