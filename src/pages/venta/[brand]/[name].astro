@@ -1,45 +1,58 @@
 ---
-import { getProducts } from "../../../lib/prestashop";
+import { getProducts, getCategoryById } from "../../../lib/prestashop";
 import LayoutPrincipal from "../../../layouts/LayoutPrincipal.astro";
 import ModalPedido from "../../../components/ModalPedido.astro";
 import { getImageUrl } from "../../../lib/utils";
 import { Image } from "astro:assets";
 
-// 1. Generar todas las rutas posibles en el momento del 'build'
 export async function getStaticPaths() {
   const products = await getProducts();
 
-  // Filtro inicial por activos y categoría 18 [cite: 20]
-  const filteredProducts = products.filter((product) => {
-    return product.active === "1" && product.id_category_default === "18";
-  });
+  // Filtro inicial por activos y categoría 18
+  const filteredProducts = products.filter(
+    (p) => p.active === "1" && p.id_category_default === "18",
+  );
 
-  const paths: any[] = [];
+  // Cache para no repetir llamadas a la API de categorías
+  const categoryCache = new Map();
 
-  for (const product of filteredProducts) {
-    try {
-      // Validamos que manufacturer_name exista para evitar errores de string [cite: 7]
-      const brandName = product.manufacturer_name || "generico";
-      const brandSlug = brandName
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "");
+  const paths = await Promise.all(
+    filteredProducts.map(async (product) => {
+      try {
+        // 1. Buscamos el primer ID que no sea '2' ni '18'
+        const brandCatId = product.associations.categories.find(
+          (cat: any) => cat.id !== "2" && cat.id !== "18",
+        )?.id;
 
-      paths.push({
-        params: {
-          brand: brandSlug,
-          name: product.link_rewrite,
-        },
-        props: {
-          product: product,
-        },
-      });
-    } catch (e) {
-      console.error(`Error procesando producto ID ${product.id}:`, e);
-    }
-  }
+        let brandSlug = "generico";
 
-  return paths;
+        if (brandCatId) {
+          // 2. Si no la tenemos en cache, la pedimos al webservice
+          if (!categoryCache.has(brandCatId)) {
+            const categoryData = await getCategoryById(brandCatId);
+            categoryCache.set(brandCatId, categoryData.link_rewrite);
+          }
+          brandSlug = categoryCache.get(brandCatId);
+        }
+
+        return {
+          params: {
+            brand: brandSlug,
+            name: product.link_rewrite,
+          },
+          props: {
+            product: product,
+          },
+        };
+      } catch (e) {
+        console.error(`Error procesando producto ID ${product.id}:`, e);
+        return null;
+      }
+    }),
+  );
+
+  // Limpiamos los nulos en caso de errores en la iteración
+  return paths.filter((p) => p !== null);
 }
 
 // Funcioines auxiliares
@@ -181,7 +194,10 @@ const jsonLd = {
 
           <div class="js-qv-mask mask scroll">
             {/* Carrousel de Imagenes */}
-            <ul class="product-images js-qv-product-images" style="overflow-x: scroll;">
+            <ul
+              class="product-images js-qv-product-images"
+              style="overflow-x: scroll;"
+            >
               {
                 images.map((img: { id: any }, index: number) => {
                   const baseUrl = `https://tecnolobbyx.com/tienda/${img.id}`;

@@ -48,25 +48,71 @@ const meta_description = category.meta_description;
 ---
 
 <LayoutPrincipal title={name} meta_description={meta_description}>
-  <div class="row product-container js-product-container">
+  <div
+    class="row product-container js-product-container"
+    style="padding: 5% 1%;"
+  >
     <section class="brands-section">
       <h1 class="section-title">Nuestras Marcas</h1>
       <div class="brands-grid">
-        {
-          category.associations.categories.map((brand) => (
-            <a href={`/celulares/${brand.link_rewrite}`} class="brand-card">
-              <div class="brand-logo-wrapper">
-                <Image
-                  src={`https://tecnolobbyx.com/tienda/img/${brand.link_rewrite}.png`}
-                  alt={`Celulares ${brand.name}`}
-                  width={600}
-                  height={600}
-                />
-              </div>
-              <span class="brand-name">Ver {brand.name}</span>
-            </a>
-          ))
-        }
+        <a href="./celulares/apple" class="brand-card">
+          <div class="brand-logo-wrapper">
+            <Image
+              src="https://tecnolobbyx.com/tienda/img/iphone.png"
+              alt="Celulares Apple"
+              width={600}
+              height={600}
+            />
+          </div>
+          <span class="brand-name">Ver iPhones</span>
+        </a>
+        <a href="./celulares/xiaomi" class="brand-card">
+          <div class="brand-logo-wrapper">
+            <Image
+              src="https://tecnolobbyx.com/tienda/img/xiaomi.png"
+              alt="Celulares Xiaomi"
+              width={600}
+              height={600}
+            />
+          </div>
+          <span class="brand-name">Ver Redmi</span>
+        </a>
+        <a href="./celulares/samsung" class="brand-card">
+          <div class="brand-logo-wrapper">
+            <Image
+              src="https://tecnolobbyx.com/tienda/img/samsung.png"
+              alt="Celulares Samsung"
+              width={600}
+              height={600}
+            />
+          </div>
+          <span class="brand-name">Ver Galaxy</span>
+        </a>
+        <a href="./celulares/motorola" class="brand-card">
+          <div class="brand-logo-wrapper">
+            <Image
+              src="https://tecnolobbyx.com/tienda/img/motorola.png"
+              alt="Celulares Motorola"
+              width={600}
+              height={600}
+            />
+          </div>
+          <span class="brand-name">Ver Moto</span>
+        </a>
+        <a href="./celulares/infinix" class="brand-card">
+          <div class="brand-logo-wrapper">
+            <Image
+              src="https://tecnolobbyx.com/tienda/img/infinix.png"
+              alt="Celulares Infinix"
+              width={600}
+              height={600}
+            />
+          </div>
+          <span class="brand-name">Ver Infinix</span>
+        </a>
+      </div>
+      <div class="button-container">
+        <a href="./celulares" class="btn-celulares"> Ver todos los celulares </a>
       </div>
     </section>
     <style>
@@ -85,10 +131,11 @@ const meta_description = category.meta_description;
 
       /* Configuración de la cuadrícula */
       .brands-grid {
-        display: grid;
-        /* Por defecto: 2 columnas (Mobile) */
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 15px;
+        width: 100%;
       }
 
       /* Cambio a 3 columnas en Desktop (768px o más) */
@@ -102,6 +149,9 @@ const meta_description = category.meta_description;
       /* Estilo de la tarjeta individual */
       .brand-card {
         display: flex;
+        flex: 0 1 calc(33.33% - 10px);
+        min-width: 140px;
+        box-sizing: border-box;
         flex-direction: column;
         align-items: center;
         justify-content: center;
@@ -119,6 +169,9 @@ const meta_description = category.meta_description;
         transform: translateY(-5px);
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
         border-color: #007bff;
+        flex: 0 1 calc(50% - 8px);
+        min-width: 140px;
+        box-sizing: border-box;
       }
 
       .brand-logo-wrapper {
@@ -141,6 +194,42 @@ const meta_description = category.meta_description;
         font-size: 1.1rem;
         font-weight: 600;
         color: #333;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 20px; /* Espacio respecto al grid */
+        padding: 0 15px; /* Para que no toque los bordes en móviles */
+        box-sizing: border-box;
+      }
+
+      .btn-celulares {
+        display: block;
+        width: 100%;
+        max-width: 400px; /* Ajusta esto según prefieras */
+        padding: 15px 0;
+
+        background: linear-gradient(90deg, #6a11cb, #a445ed, #6a11cb);
+        background-size: 200% auto;
+        background-position: left center;
+
+        color: #fff !important;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+
+        transition: transform .2s ease, background-position .5s ease;
+            cursor: pointer;
+            border: none;
+      }
+
+      .btn-celulares:hover {
+        transform: scale(.98);
+        background-position: right center;
       }
     </style>
   </div>
