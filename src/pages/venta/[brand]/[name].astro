@@ -1,5 +1,10 @@
 ---
-import { getProducts, getCategoryById } from "../../../lib/prestashop";
+import {
+  getProducts,
+  getCategoryById,
+  getProductFeature,
+  getProductFeatureValue,
+} from "../../../lib/prestashop";
 import LayoutPrincipal from "../../../layouts/LayoutPrincipal.astro";
 import ModalPedido from "../../../components/ModalPedido.astro";
 import { getImageUrl } from "../../../lib/utils";
@@ -78,6 +83,32 @@ const name = product.name ?? "Producto sin nombre";
 const meta_description = product.meta_description ?? "";
 const categoryId = parseInt(product.id_category_default);
 
+// Definimos el array donde guardaremos los resultados
+let caracteristicas = [];
+
+if (product?.associations?.product_features) {
+  for (const feature of product.associations.product_features) {
+    try {
+      // Obtenemos la definición de la característica
+      const caracteristica = await getProductFeature(feature.id);
+
+      // Obtenemos el valor específico y lo asignamos
+      caracteristica.valor = await getProductFeatureValue(
+        feature.id_feature_value,
+      );
+
+      // Guardamos el objeto completo en nuestro array
+      caracteristicas.push(caracteristica);
+    } catch (error) {
+      console.error(`Error procesando la característica ${feature.id}:`, error);
+    }
+  }
+}
+
+const caracteristicasOrdenadas = caracteristicas.sort((a, b) => {
+  return parseInt(a.position) - parseInt(b.position);
+});
+
 // Precios
 const rawPrice = parseFloat(price);
 // Definimos variables de salida
@@ -114,6 +145,18 @@ const images = product.associations.images || [];
 const nameForWhatsapp = name.replace(/ /g, "+");
 const whatsappNumber = "5493513473549";
 const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=Hola+Lobbyx%21+Queria+consultarte+sobre+${nameForWhatsapp}&type=phone_number&app_absent=0`;
+
+//texto garantia
+const categories = product?.associations?.categories || [];
+const categoryIds = categories.map(cat => Number(cat.id));
+
+let textoGarantia = "Garantía de 2 años"; // Valor por defecto
+
+if (categoryIds.includes(49)) {
+    textoGarantia = "Garantía de 12 meses";
+} else if (categoryIds.includes(63)) {
+    textoGarantia = "Garantía de 6 meses";
+}
 
 // Lógica para la imagen (PrestaShop usa una estructura de carpetas basada en el ID)
 
@@ -232,7 +275,7 @@ const jsonLd = {
             src="https://tecnolobbyx.com/tienda/img/garantia.png"
             alt="Garantía"
           />
-          <span>Garantía de 2 años</span>
+          <span>{textoGarantia}</span>
         </div>
 
         <div class="item">
@@ -456,7 +499,7 @@ const jsonLd = {
     </div>
   </div>
   <div class="row product-container js-product-container">
-    <div class="tabs" style="width: 100%; margin: 0; flex-direction: column;">
+    <div class="tabs" style="margin: 0; display: block; padding: 1.25rem 10px;">
       <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
           <a
@@ -466,7 +509,17 @@ const jsonLd = {
             role="tab"
             aria-controls="description"
             aria-selected="true"
-            aria-expanded="true"><h2>Descripción</h2></a
+            aria-expanded="true">Descripción</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            data-toggle="tab"
+            href="#product-details"
+            role="tab"
+            aria-controls="product-details"
+            aria-expanded="false">Detalles del producto</a
           >
         </li>
       </ul>
@@ -484,9 +537,64 @@ const jsonLd = {
         >
           <div class="product-description" set:html={product.description} />
         </div>
+
+        <div
+          class="js-product-details tab-pane fade"
+          id="product-details"
+          role="tabpanel"
+          aria-expanded="false"
+        >
+          <section class="product-features" id="product-features">
+            <p class="h6">Ficha técnica</p>
+            <dl class="data-sheet">
+              {
+                caracteristicasOrdenadas.map((feature) => (
+                  <>
+                    <dt class="name">{feature.name}</dt>
+                    <dd class="value">{feature.valor}</dd>
+                  </>
+                ))
+              }
+            </dl>
+          </section>
+        </div>
       </div>
     </div>
   </div>
+  <script>
+    // Seleccionamos todos los enlaces de las pestañas
+    const tabLinks = document.querySelectorAll(".nav-tabs .nav-link");
+    // Seleccionamos todos los paneles de contenido
+    const tabPanes = document.querySelectorAll(".tab-content .tab-pane");
+
+    tabLinks.forEach((link) => {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        // 1. GESTIÓN DE LOS BOTONES (NAV-LINKS)
+        // Quitamos 'active' de todos los enlaces
+        tabLinks.forEach((l) => l.classList.remove("active"));
+        // Añadimos 'active' al que tocamos
+        this.classList.add("active");
+
+        // 2. GESTIÓN DEL CONTENIDO (TAB-PANES)
+        const targetId = this.getAttribute("href"); // Ejemplo: "#product-details"
+
+        tabPanes.forEach((pane) => {
+          // Quitamos las clases de activación de todos los paneles
+          pane.classList.remove("active", "in", "show");
+
+          // Si el id del panel coincide con el href del link, lo activamos
+          if (`#${pane.id}` === targetId) {
+            pane.classList.add("active", "in");
+            // 'in' es para el efecto de fade de Bootstrap antiguo,
+            // 'show' se usa en versiones más modernas.
+            pane.classList.add("show");
+          }
+        });
+      });
+    });
+  </script>
   <script is:inline src="https://tecnolobbyx.com/theme.js"></script>
   <script>
     function initProductGallery() {
@@ -714,25 +822,46 @@ const jsonLd = {
       font-family: Arial, sans-serif;
       border: 3px solid #6fd1c5;
     }
-
     .banner-prod-info .item {
       display: flex;
       align-items: center;
       gap: 5px;
       flex: 1;
     }
-
     .banner-prod-info .item img {
       width: 25px;
       height: 25px;
       object-fit: contain;
     }
-
     .banner-prod-info .item span {
       font-size: 8px;
       font-weight: 600;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       line-height: normal;
+    }
+    .product-description h2 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .product-description h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+    .product-description p {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+      font-weight: 400;
+    }
+    .product-description p strong {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+      font-weight: bolder;
+    }
+    .product-description ul {
+      list-style-type: disc;
+      padding-left: 40px;
     }
   </style>
   <script>
