@@ -21,14 +21,21 @@ const f = (val) =>
   }).format(val);
 ---
 
-<button id="openModal" type="button" class="btn-primary-custom" style="margin-bottom: 5px;">
-  ¡Compra con 30% Off!
-</button>
+<a class="promo-btn" id="openModal" href="#">
+  ¡Compra con 30% Off en LobbyX!
+  <img
+    src="https://tecnolobbyx.com/tienda/img/click.png"
+    alt="click"
+    class="click-icon"
+  />
+</a>
 
 <dialog id="pedidoModal" class="modal-container">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 style="margin: 0;font-size: medium;text-align: center;">Finalizar Pedido: {productName}</h3>
+      <h3 style="margin: 0;font-size: medium;text-align: center;">
+        Finalizar Pedido: {productName}
+      </h3>
       <button id="closeModal" class="close-btn">&times;</button>
     </div>
 
@@ -174,15 +181,74 @@ const f = (val) =>
   };
 </script>
 
-<style>
-  .btn-primary-custom {
-    border-radius: 25px;
-    background-color: #8223fd;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-weight: bold;
+<style is:global>
+  .promo-btn {
+    position: relative; /* clave para posicionar el icono */
+    display: inline-block;
+    padding: 18px 60px 18px 30px;
+
+    background: linear-gradient(180deg, #2f4f63, #1f3b4d);
+    border-radius: 20px;
+    border: 3px solid #6fd1c5;
+
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: underline;
+
+    box-shadow:
+      inset 0 2px 4px rgba(255, 255, 255, 0.2),
+      0 4px 10px rgba(0, 0, 0, 0.3);
+
     cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  a.promo-btn:hover, a.promo-btn:focus {
+    color: #fff !important;
+    background-image: linear-gradient(180deg, #2f4f63, #1f3b4d) !important;
+    background-clip: unset !important;
+    text-decoration: underline;
+  }
+
+  .click-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    width: 35px;
+    height: auto;
+    pointer-events: none; /* para no interferir con el click */
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .promo-btn {
+      font-size: 20px;
+      padding: 14px 20px;
+    }
+
+    .click-icon {
+      width: 28px;
+      bottom: 3px;
+      right: 6px;
+    }
+  }
+  .click-icon {
+    animation: clickPulse 1.2s infinite;
+  }
+
+  @keyframes clickPulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.15);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
   .modal-container {
     border: none;

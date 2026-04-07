@@ -1,0 +1,62 @@
+---
+import LayoutPrincipal from "../../layouts/LayoutPrincipal.astro";
+import { getCategoryById } from "../../lib/prestashop";
+import { Image } from "astro:assets";
+
+export async function getStaticPaths() {
+  const parentCategory = await getCategoryById(18);
+
+  const childrenIds = parentCategory.associations.categories || [];
+
+  const childrenCategories = await Promise.all(
+    childrenIds.map(async (cat: any) => {
+      try {
+        return await getCategoryById(cat.id);
+      } catch (e) {
+        console.error(`Error buscando categoría ${cat.id}:`, e);
+        return null;
+      }
+    }),
+  );
+
+  return childrenCategories
+    .filter((c) => c !== null && c.active === "1")
+    .map((c) => {
+      return {
+        params: {
+          brand: c.link_rewrite,
+        },
+        props: {
+          category: c, // Pasamos la categoría hija específica como prop
+        },
+      };
+    });
+}
+
+const { category } = Astro.props;
+---
+
+<LayoutPrincipal
+  title={category.name}
+  meta_description={category.meta_description}
+>
+  <div class="row product-container js-product-container">
+    <div class="col-12">
+      <h1 class="h1" style="text-align: center;">
+        ¡Compra tu nuevo {category.name} en CÓRDOBA!
+      </h1>
+      <p style="text-align: center;">
+        Tu tienda {category.name === "Xiaomi" ? "oficial" : ""} para encontrar los
+        últimos smartphones {category.name} al mejor precio en <b>Córdoba.</b>
+      </p>
+    </div>
+    <div class="col-6">
+        <!-- <Image
+            src={``}
+            alt={``}
+            width={}
+            height={}
+        /> -->
+    </div>
+  </div>
+</LayoutPrincipal>

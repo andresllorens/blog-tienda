@@ -144,7 +144,7 @@ const jsonLd = {
       <h1 class="h1" style="text-align: center;">{name}</h1>
       <section class="page-content" id="content">
         {/* Inicio Product Flags */}
-        <ul class="product-flags js-product-flags">
+        <!-- <ul class="product-flags js-product-flags">
           {/* Caso para Categoría 18 (Celulares) */}
           {categoryId === 18 && <li class="product-flag descuento">-30%</li>}
 
@@ -171,7 +171,7 @@ const jsonLd = {
               </>
             )
           }
-        </ul>
+        </ul> -->
         {/* Fin Product Flags */}
 
         {/* Iimagen del Producto */}
@@ -226,33 +226,26 @@ const jsonLd = {
       </section>
     </div>
     <div class="col-md-6">
-      <div class="product-info-banner">
-        <div class="info-item">
-          <Image
-            src="https://tecnolobbyx.com/tienda/img/garantia.svg"
+      <div class="banner-prod-info">
+        <div class="item">
+          <img
+            src="https://tecnolobbyx.com/tienda/img/garantia.png"
             alt="Garantía"
-            width={24}
-            height={24}
           />
-          <p>Garantía <br /> de 2 años</p>
+          <span>Garantía de 2 años</span>
         </div>
-        <div class="info-item">
-          <Image
-            src="https://tecnolobbyx.com/tienda/img/envio.svg"
-            alt="Envío"
-            width={24}
-            height={24}
-          />
-          <p>Envío Express <br /> Gratis</p>
+
+        <div class="item">
+          <img src="https://tecnolobbyx.com/tienda/img/envio.png" alt="Envío" />
+          <span>Envío Express Gratis</span>
         </div>
-        <div class="info-item">
-          <Image
-            src="https://tecnolobbyx.com/tienda/img/local.svg"
-            alt="Local"
-            width={24}
-            height={24}
+
+        <div class="item">
+          <img
+            src="https://tecnolobbyx.com/tienda/img/local.png"
+            alt="Ubicación"
           />
-          <p>Local Físico <br /> en Córdoba</p>
+          <span>Tienda Física en Córdoba</span>
         </div>
       </div>
 
@@ -291,11 +284,6 @@ const jsonLd = {
           cuota9={cuota9}
           cuota12={cuota12}
         />
-        <a
-          class="prod-wpp-link"
-          href={whatsappUrl}
-          target="_blank"
-          style="display: inline-block;"></a>
       </div>
 
       <div id="cajaMostrarPrecios" class="payment-methods-box">
@@ -468,7 +456,7 @@ const jsonLd = {
     </div>
   </div>
   <div class="row product-container js-product-container">
-    <div class="tabs" style="width: 100%; margin: 0;">
+    <div class="tabs" style="width: 100%; margin: 0; flex-direction: column;">
       <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
           <a
@@ -581,7 +569,7 @@ const jsonLd = {
     document.addEventListener("astro:after-swap", initProductGallery);
   </script>
 
-  <style>
+  <style is:global>
     /* Estilos básicos para que las miniaturas se vean seleccionadas */
     .thumb.selected,
     .js-modal-thumb.selected {
@@ -596,52 +584,6 @@ const jsonLd = {
       display: block;
       background: rgba(0, 0, 0, 0.8);
     }
-    .product-info-banner {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background-color: #f1f1f1; /* Gris claro de la imagen */
-      border-radius: 15px;
-      padding: 10px 5px;
-      margin: 15px 0;
-      font-family: sans-serif;
-    }
-
-    .info-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .info-item img {
-      width: 24px; /* Ajusta según el tamaño de tus iconos */
-      height: auto;
-    }
-
-    .info-item p {
-      margin: 0;
-      font-size: 11px;
-      line-height: 1.2;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .img-fluid {
-      width: 100%;
-      height: auto;
-    }
-
-    /* Ajuste para móviles */
-    @media (max-width: 767px) {
-      .product-info-banner {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .info-item p {
-        font-size: 10px;
-      }
-    }
-
     .price-container {
       display: flex;
       flex-direction: column;
@@ -756,6 +698,40 @@ const jsonLd = {
     .mostrar-precios-link:hover {
       color: #0056b3;
       text-decoration: none;
+    }
+    .banner-prod-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2px;
+      padding: 15px 5px;
+
+      background: linear-gradient(180deg, #2f4f63, #1f3b4d);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+      color: #fff;
+      font-family: Arial, sans-serif;
+      border: 3px solid #6fd1c5;
+    }
+
+    .banner-prod-info .item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 1;
+    }
+
+    .banner-prod-info .item img {
+      width: 35px;
+      height: 35px;
+      object-fit: contain;
+    }
+
+    .banner-prod-info .item span {
+      font-size: 12px;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
   </style>
   <script>
