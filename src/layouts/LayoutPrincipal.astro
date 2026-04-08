@@ -19,6 +19,7 @@ const { whatsappUrl } = Astro.props;
     <link rel="stylesheet" href="https://tecnolobbyx.com/tienda/modules/mobbex/views/css/front.css?ver=3.5.2" type="text/css" media="all"/>
     <link rel="stylesheet" href="https://tecnolobbyx.com/theme.css" type="text/css" media="all"/>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Tag -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-11427887911"></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
@@ -29,6 +30,27 @@ const { whatsappUrl } = Astro.props;
       gtag("js", new Date());
       gtag("config", "AW-11427887911");
     </script>
+    <!-- End Google Tag -->
+    <!-- Meta Tag -->
+    <script is:inline>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      
+      fbq('init', '1112325287044375'); 
+      fbq('track', 'PageView');
+    </script>
+
+    <noscript>
+      <img height="1" width="1" style="display:none" 
+          src="https://www.facebook.com/tr?id=1112325287044375&ev=PageView&noscript=1" />
+    </noscript>
+    <!-- End Meta Tag -->
   </head>
   <body>
     <main>

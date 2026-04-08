@@ -891,7 +891,7 @@ const jsonLd = {
       try {
         // 1. Obtener precio real de PrestaShop (puedes usar un endpoint de tu lib/prestashop o un proxy)
         // Ajusta la URL a tu endpoint real en DonWeb
-        const response = await fetch(`/api/get-current-price?id=${PRODUCT_ID}`);
+        const response = [];
         const data = await response.json();
         const rawPrice = parseFloat(data.price);
 

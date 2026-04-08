@@ -158,34 +158,34 @@ const f = (val) =>
     });
   });
 
-  function gtag_report_conversion(url) {
+function trackConversionAndRedirect(url) {
     let opened = false;
     const openOnce = () => {
-      if (opened) {
-        return;
-      }
-
+      if (opened) return;
       opened = true;
       if (typeof url !== "undefined") {
         window.open(url, "_blank");
       }
     };
 
-    if (typeof window.gtag !== "function") {
-      openOnce();
-      return false;
+    // 1. Meta (Facebook/Instagram)
+    if (typeof fbq === 'function') {
+      fbq('track', 'Lead', {
+        content_name: document.title,
+        content_category: 'Formulario Producto' 
+      });
     }
 
-    const callback = function () {
-      openOnce();
-    };
+    // 2. Google Ads - Tu código existente 
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "conversion", {
+        send_to: "AW-11427887911/6KDpCJLtqJgcEKf2nskq",
+        event_callback: function() {
+        },
+      });
+    }
 
-    window.gtag("event", "conversion", {
-      send_to: "AW-11427887911/6KDpCJLtqJgcEKf2nskq",
-      event_callback: callback,
-    });
-
-    setTimeout(openOnce, 1500);
+    setTimeout(openOnce, 1000); 
     return false;
   }
 
@@ -200,7 +200,7 @@ const f = (val) =>
         : `PARA RETIRO\n🙌🏼 Reserva para: ${productName}\n\n👤 Nombre: ${data.get("nombre")}\n💳 Pago: ${data.get("pago")}\n📌 CUIL/CUIT: ${data.get("cuil")}\n📲 Cel: ${data.get("celular")}\n📩 Email: ${data.get("email")}\n💜 Origen: ${data.get("conociste")}\n\nGracias por confiar en Lobbyx! 🚀`;
 
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(baseMsg)}`;
-    gtag_report_conversion(whatsappUrl);
+    trackConversionAndRedirect(whatsappUrl);
   };
 </script>
 
