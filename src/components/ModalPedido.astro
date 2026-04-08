@@ -6,7 +6,6 @@ const {
   precioDebito,
   cuota3,
   cuota6,
-  cuota7,
   cuota9,
   cuota12,
   phoneNumber = "5493513473549",
@@ -121,11 +120,6 @@ const f = (val) =>
           />
         </div>
 
-        <input
-          type="text"
-          name="conociste"
-          placeholder="¿Cómo nos conociste?"
-        />
         <select name="conociste" id="conociste" required>
           <option value="" disabled selected>¿Cómo nos conociste?</option>
           <option value={`Instagram`}> Instagram </option>
@@ -164,6 +158,37 @@ const f = (val) =>
     });
   });
 
+  function gtag_report_conversion(url) {
+    let opened = false;
+    const openOnce = () => {
+      if (opened) {
+        return;
+      }
+
+      opened = true;
+      if (typeof url !== "undefined") {
+        window.open(url, "_blank");
+      }
+    };
+
+    if (typeof window.gtag !== "function") {
+      openOnce();
+      return false;
+    }
+
+    const callback = function () {
+      openOnce();
+    };
+
+    window.gtag("event", "conversion", {
+      send_to: "AW-11427887911/6KDpCJLtqJgcEKf2nskq",
+      event_callback: callback,
+    });
+
+    setTimeout(openOnce, 1500);
+    return false;
+  }
+
   form.onsubmit = (e) => {
     e.preventDefault();
     const data = new FormData(form);
@@ -174,10 +199,8 @@ const f = (val) =>
         ? `PARA ENVIO\n🚀 Reserva para: ${productName}\n\n👤 Nombre: ${data.get("nombre")}\n💳 Pago: ${data.get("pago")}\n📌 CUIL/CUIT: ${data.get("cuil")}\n📲 Cel: ${data.get("celular")}\n📍 Dir: ${data.get("direccion")}\n🏙️ Ciudad: ${data.get("localidad")}\n📮 CP: ${data.get("cp")}\n📩 Email: ${data.get("email")}\n💜 Origen: ${data.get("conociste")}\n\nGracias por elegir Lobbyx!`
         : `PARA RETIRO\n🙌🏼 Reserva para: ${productName}\n\n👤 Nombre: ${data.get("nombre")}\n💳 Pago: ${data.get("pago")}\n📌 CUIL/CUIT: ${data.get("cuil")}\n📲 Cel: ${data.get("celular")}\n📩 Email: ${data.get("email")}\n💜 Origen: ${data.get("conociste")}\n\nGracias por confiar en Lobbyx! 🚀`;
 
-    window.open(
-      `https://wa.me/${phoneNumber}?text=${encodeURIComponent(baseMsg)}`,
-      "_blank",
-    );
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(baseMsg)}`;
+    gtag_report_conversion(whatsappUrl);
   };
 </script>
 
