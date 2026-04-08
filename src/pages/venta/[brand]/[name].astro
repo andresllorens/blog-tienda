@@ -148,14 +148,14 @@ const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text
 
 //texto garantia
 const categories = product?.associations?.categories || [];
-const categoryIds = categories.map(cat => Number(cat.id));
+const categoryIds = categories.map((cat) => Number(cat.id));
 
 let textoGarantia = "Garantía de 2 años"; // Valor por defecto
 
 if (categoryIds.includes(49)) {
-    textoGarantia = "Garantía de 12 meses";
+  textoGarantia = "Garantía de 12 meses";
 } else if (categoryIds.includes(63)) {
-    textoGarantia = "Garantía de 6 meses";
+  textoGarantia = "Garantía de 6 meses";
 }
 
 // Lógica para la imagen (PrestaShop usa una estructura de carpetas basada en el ID)
@@ -181,7 +181,7 @@ const jsonLd = {
 };
 ---
 
-<LayoutPrincipal title={name} meta_description={meta_description}>
+<LayoutPrincipal title={name} meta_description={meta_description} whatsappUrl={whatsappUrl}>
   <div class="row product-container js-product-container">
     <div class="col-md-6">
       <h1 class="h1" style="text-align: center;">{name}</h1>
@@ -313,10 +313,7 @@ const jsonLd = {
         </div>
       </div>
 
-      <div
-        style="display: flex; justify-content: start; gap: 15px;"
-        id="botones-compra-externa"
-      >
+      <div id="botones-compra-externa">
         <ModalPedido
           productName={name}
           precioEfectivo={precioEfectivo}
@@ -500,7 +497,7 @@ const jsonLd = {
   </div>
   <div class="row product-container js-product-container">
     <div class="tabs" style="margin: 0; display: block; padding: 1.25rem 10px;">
-      <ul class="nav nav-tabs" role="tablist">
+      <ul class="nav nav-tabs" role="tablist" style="display: flex;">
         <li class="nav-item">
           <a
             class="nav-link js-product-nav-active active"
@@ -834,7 +831,7 @@ const jsonLd = {
       object-fit: contain;
     }
     .banner-prod-info .item span {
-      font-size: 8px;
+      font-size: 0.75rem;
       font-weight: 600;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       line-height: normal;
@@ -862,6 +859,11 @@ const jsonLd = {
     .product-description ul {
       list-style-type: disc;
       padding-left: 40px;
+    }
+
+    #botones-compra-externa {
+      display: flex;
+      justify-content: center;
     }
   </style>
   <script>

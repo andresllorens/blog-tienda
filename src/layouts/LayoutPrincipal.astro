@@ -3,6 +3,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 const { title } = Astro.props;
 const { meta_description } = Astro.props;
+const { whatsappUrl } = Astro.props;
 ---
 
 <!doctype html>
@@ -21,7 +22,7 @@ const { meta_description } = Astro.props;
   </head>
   <body>
     <main>
-      <Header />
+      <Header whatsappUrl={whatsappUrl} />
       <section id="wrapper">
         <div class="container">
           <div id="content-wrapper" class="js-content-wrapper">

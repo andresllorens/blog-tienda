@@ -1,3 +1,6 @@
+---
+const { whatsappUrl } = Astro.props;
+---
 <header id="header">
   <div class="header-top">
     <div class="container">
@@ -45,7 +48,7 @@
             </li>
           </ul>
           <a
-            href="https://api.whatsapp.com/send/?phone=5493513578565&text=Hola+Lobbyx%21+Queria+consultarte+sobre...&type=phone_number&app_absent=0"
+            href={whatsappUrl}
             class="cont-boton-wpp"
             target="_blank"></a>
         </div>
