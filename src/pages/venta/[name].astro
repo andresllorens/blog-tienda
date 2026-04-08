@@ -5,15 +5,25 @@ import { Image } from "astro:assets";
 
 export async function getStaticPaths() {
   const category = await getCategoryById(18);
+
+  if (!category?.associations?.categories) {
+    console.error("No se pudo cargar la categoría 18 para /venta/[name].");
+    return [];
+  }
+
   delete category.associations.products;
 
-  const categories = category.associations.categories;
+  const categories = category.associations.categories || [];
 
   category.associations.categories = [];
 
   for (const cat of categories) {
+    if (!cat?.id) {
+      continue;
+    }
+
     const c = await getCategoryById(cat.id);
-    if (c.active === "1") {
+    if (c?.active === "1") {
       category.associations.categories.push(c);
     }
   }
@@ -21,8 +31,11 @@ export async function getStaticPaths() {
   const paths: any[] = [];
 
   try {
-    // Validamos que manufacturer_name exista para evitar errores de string [cite: 7]
     const name = category.link_rewrite;
+
+    if (!name) {
+      return [];
+    }
 
     paths.push({
       params: {

@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 
   // Filtro inicial por activos y categoría 18
   const filteredProducts = products.filter(
-    (p) => p.active === "1" && p.id_category_default === "18",
+    (p) => p?.active === "1" && p?.id_category_default === "18" && p?.link_rewrite,
   );
 
   // Cache para no repetir llamadas a la API de categorías
@@ -24,8 +24,10 @@ export async function getStaticPaths() {
   const paths = await Promise.all(
     filteredProducts.map(async (product) => {
       try {
+        const productCategories = product?.associations?.categories || [];
+
         // 1. Buscamos el primer ID que no sea '2' ni '18'
-        const brandCatId = product.associations.categories.find(
+        const brandCatId = productCategories.find(
           (cat: any) => cat.id !== "2" && cat.id !== "18",
         )?.id;
 
@@ -35,7 +37,8 @@ export async function getStaticPaths() {
           // 2. Si no la tenemos en cache, la pedimos al webservice
           if (!categoryCache.has(brandCatId)) {
             const categoryData = await getCategoryById(brandCatId);
-            categoryCache.set(brandCatId, categoryData.link_rewrite);
+            const categorySlug = categoryData?.link_rewrite || "generico";
+            categoryCache.set(brandCatId, categorySlug);
           }
           brandSlug = categoryCache.get(brandCatId);
         }

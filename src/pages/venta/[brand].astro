@@ -6,11 +6,19 @@ import { Image } from "astro:assets";
 export async function getStaticPaths() {
   const parentCategory = await getCategoryById(18);
 
+  if (!parentCategory?.associations?.categories) {
+    console.error("No se pudo cargar la categoría madre 18 para /venta/[brand].");
+    return [];
+  }
+
   const childrenIds = parentCategory.associations.categories || [];
 
   const childrenCategories = await Promise.all(
     childrenIds.map(async (cat: any) => {
       try {
+        if (!cat?.id) {
+          return null;
+        }
         return await getCategoryById(cat.id);
       } catch (e) {
         console.error(`Error buscando categoría ${cat.id}:`, e);
@@ -20,7 +28,7 @@ export async function getStaticPaths() {
   );
 
   return childrenCategories
-    .filter((c) => c !== null && c.active === "1")
+    .filter((c) => c !== null && c.active === "1" && c.link_rewrite)
     .map((c) => {
       return {
         params: {
