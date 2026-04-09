@@ -183,12 +183,14 @@ function trackConversionAndRedirect(url) {
     if (typeof window.gtag === "function") {
       window.gtag("event", "conversion", {
         send_to: "AW-11427887911/6KDpCJLtqJgcEKf2nskq",
-        event_callback: function() {
-        },
+          event_callback: function() {
+            openOnce();
+          }
       });
+    } else {
+      openOnce();
     }
 
-    setTimeout(openOnce, 1000); 
     return false;
   }
 
