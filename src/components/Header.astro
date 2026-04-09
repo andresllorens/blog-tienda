@@ -1,6 +1,7 @@
 ---
 const { whatsappUrl } = Astro.props;
 ---
+
 <header id="header">
   <div class="header-top">
     <div class="container">
@@ -49,8 +50,45 @@ const { whatsappUrl } = Astro.props;
           </ul>
           <a
             href={whatsappUrl}
+            id="wpp-header-btn"
             class="cont-boton-wpp"
-            target="_blank"></a>
+            target="_blank"
+            onclick={`return trackHeaderWppClick('${whatsappUrl}');`}
+          ></a>
+          <script is:inline>
+            function trackHeaderWppClick(url) {
+              let opened = false;
+              const openOnce = () => {
+                if (opened) return;
+                opened = true;
+                if (typeof url !== "undefined" && url !== "") {
+                  window.open(url, "_blank");
+                }
+              };
+
+              // 1. Google Ads
+              if (typeof window.gtag === "function") {
+                window.gtag("event", "conversion", {
+                  send_to: "AW-11427887911/_y2YCK7TsZgcEKf2nskq",
+                  event_callback: function () {
+                    // Callback de seguridad
+                  },
+                });
+              }
+
+              // 2. Meta (Facebook/Instagram)
+              if (typeof window.fbq === "function") {
+                window.fbq("track", "Contact", {
+                  content_name: "Boton Flotante",
+                  content_category: "Consulta Directa",
+                });
+              }
+
+              // 3. Redirección con delay
+              setTimeout(openOnce, 1000);
+              return false;
+            }
+          </script>
         </div>
       </div>
       <div
