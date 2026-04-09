@@ -1,0 +1,581 @@
+---
+import LayoutPrincipal from "../../layouts/LayoutPrincipal.astro";
+
+const whatsappUrl =
+  "https://api.whatsapp.com/send/?phone=5493513578565&text=Hola+Lobbyx%21+Queria+consultarte+sobre...&type=phone_number&app_absent=0";
+---
+
+<LayoutPrincipal
+  title="LobbyX | Tienda"
+  meta_description="Celulares, smartwatch, auriculares, accesorios y mucho mas en LobbyX."
+  whatsappUrl={whatsappUrl}
+>
+  <section id="content" class="page-home">
+    <img
+      src="https://tecnolobbyx.com/tienda/img/cms/parque.png"
+      alt="Foto de las escalinatas del parque"
+      id="banner-inicio-desk"
+      style="width: 100%; height: auto; object-fit: contain;"
+      title="Foto de las escalinatas del parque"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+    <img
+      src="https://tecnolobbyx.com/tienda/img/cms/inicio.png"
+      alt="Banner de inicio"
+      id="banner-inicio-mobile"
+      style="width: 100%; height: auto; object-fit: contain;"
+      title="Banner de inicio"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+
+    <div class="row banner-prod" style="background-color: #F0F0F0;">
+      <div class="col-md-6 box-prod padding-5">
+        <p class="txt-medium negrita">Télefonos</p>
+        <p class="txt-medium negrita fuccia">Celulares</p>
+        <p class="txt-medium thin">Estar conectados</p>
+        <p class="txt-medium thin">es muy fácil</p>
+        <a
+          class="boton-ir"
+          href="https://tecnolobbyx.com/tienda/content/19-celulares"
+          >Ir a Celulares</a
+        >
+      </div>
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/celulares-home.png"
+          alt="Banner Celulares"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
+          title="Banner Celulares"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+
+    <div class="row banner-prod">
+      <div class="col-md-6 box-prod padding-5">
+        <p class="txt-medium negrita fuccia">Relojes</p>
+        <p class="txt-medium negrita">Inteligentes</p>
+        <p class="txt-medium thin">Estar conectados</p>
+        <p class="txt-medium thin">es muy fácil</p>
+        <a class="boton-ir" href="https://tecnolobbyx.com/tienda/20-smartwatch"
+          >Ir a Smartwatchs</a
+        >
+      </div>
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/smartwatch-home.png"
+          alt="Banner Smartwatchs"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
+          title="Banner Smartwatchs"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+
+    <div
+      class="row banner-prod"
+      style="justify-content: space-between; background-color: #F0F0F0;"
+    >
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/auriculares-home.png"
+          alt="Banner Auriculares"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain; object-position: left;"
+          title="Banner Auriculares"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+      <div class="col-md-6 box-prod" style="width: fit-content;">
+        <p class="txt-medium negrita">Auriculares</p>
+        <p class="txt-medium thin">Subile el volumen</p>
+        <p class="txt-medium thin">a tu vida.</p>
+        <a class="boton-ir" href="https://tecnolobbyx.com/tienda/17-auriculares"
+          >Ir a Auriculares</a
+        >
+      </div>
+    </div>
+
+    <div class="row banner-prod">
+      <div class="col-md-6 box-prod padding-5">
+        <p class="txt-medium negrita">Accesorios</p>
+        <p class="txt-medium thin">Todo lo que buscás</p>
+        <p class="txt-medium thin">esta acá</p>
+        <a class="boton-ir" href="https://tecnolobbyx.com/tienda/10-accesorios"
+          >Ir a Accesorios</a
+        >
+      </div>
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/accesorios-home.png"
+          alt="Banner Accesorios"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
+          title="Banner Accesorios"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+
+    <div
+      class="row banner-prod"
+      style="justify-content: space-between; background-color: #F0F0F0;"
+    >
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/electro-home.png"
+          alt="Banner Electro"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain; object-position: left;"
+          title="Banner Electro"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+      <div class="col-md-6 box-prod" style="width: fit-content;">
+        <p class="txt-medium negrita fuccia" style="display: inline-block;">
+          Electro
+        </p>
+        <p class="txt-medium negrita" style="display: inline-block;">Lobbyx</p>
+        <p class="txt-small thin">Tu vida mucho más fácil.</p>
+        <a
+          class="boton-ir"
+          href="https://tecnolobbyx.com/tienda/19-electrodomesticos">Ver más</a
+        >
+      </div>
+    </div>
+
+    <div class="row banner-prod" style="margin: 5%;">
+      <div class="col-md-6 box-prod padding-5">
+        <p class="txt-medium negrita fuccia" style="margin-bottom: 5rem;">
+          Gamer <span style="color: #000000;">Zone</span>
+        </p>
+        <a class="boton-gamer" href="https://tecnolobbyx.com/tienda/62-consolas"
+          >Ver más</a
+        >
+      </div>
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/gamer-home.png"
+          alt="Banner Electro"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
+          title="Banner Electro"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+
+    <div class="container-mobile" style="margin-top: 40px;">
+      <p class="txt-medium negrita" style="margin-bottom: 5px;">
+        <b class="fuccia">Teléfonos</b> Celulares
+      </p>
+      <p class="txt-small thin" style="margin-bottom: 0;">
+        Estar conectados es muy fácil.
+      </p>
+      <img
+        src="https://tecnolobbyx.com/tienda/img/cms/celulares-home.png"
+        alt="Teléfonos Celulares"
+        title="Teléfonos Celulares"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <a href="https://tecnolobbyx.com/tienda/content/19-celulares" class="btn"
+        >Ir a Celulares</a
+      >
+    </div>
+
+    <div class="container-mobile">
+      <p
+        class="txt-medium negrita"
+        style="margin-bottom: 5px; text-align: start; line-height: 2.25rem; margin-left: 25px; translate: 0 100px;"
+      >
+        <b class="fuccia">Relojes</b><br />Inteligentes
+      </p>
+      <p
+        class="txt-small thin"
+        style="margin-bottom: 0; text-align: start; margin-left: 25px; translate: 0 100px;"
+      >
+        Subile el volumen<br />a tu vida
+      </p>
+      <img
+        src="https://tecnolobbyx.com/tienda/img/cms/smartwatch-home.png"
+        alt="SmartWatches"
+        style="text-align: end; translate: 40px 0;"
+        title="SmartWatches"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <a
+        href="https://tecnolobbyx.com/tienda/20-smartwatch"
+        class="btn"
+        style="translate: 0; display: block; text-align: start; width: fit-content; margin-left: 25px;"
+        >Ir a Smartwatch</a
+      >
+    </div>
+
+    <div class="container-mobile">
+      <p
+        class="txt-medium negrita"
+        style="margin-bottom: 5px; text-align: start; line-height: 2.25rem; margin-left: 25px; translate: 0 100px;"
+      >
+        <b class="fuccia">Auriculares</b>
+      </p>
+      <p
+        class="txt-small thin"
+        style="margin-bottom: 0; text-align: start; margin-left: 25px; translate: 0 100px;"
+      >
+        El mundo en<br />tus manos
+      </p>
+      <img
+        src="https://tecnolobbyx.com/tienda/img/cms/auriculares-home.png"
+        alt="Auriculares"
+        style="text-align: end; margin-left: 5rem"
+        title="Auriculares"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <a
+        href="https://tecnolobbyx.com/tienda/17-auriculares"
+        class="btn"
+        style="translate: 0 -70px; display: block; text-align: start; width: fit-content; margin-left: 25px;"
+        >Ir a Auriculares</a
+      >
+    </div>
+
+    <div class="container-mobile" style="text-align: end;">
+      <p
+        class="txt-medium negrita"
+        style="margin-bottom: 5px; text-align: end; line-height: 2.25rem; margin-right: 25px; translate: 0 50px;"
+      >
+        <b class="negrita">Accesorios</b>
+      </p>
+      <p
+        class="txt-small thin"
+        style="margin-bottom: 0; text-align: end; margin-right: 25px; translate: 0 50px;"
+      >
+        Todo lo que buscas<br />está aca
+      </p>
+      <img
+        src="https://tecnolobbyx.com/tienda/img/cms/accesorio-mobile.png"
+        alt="Accesorios"
+        title="Accesorios"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <a
+        href="https://tecnolobbyx.com/tienda/10-accesorios"
+        class="btn"
+        style="padding: 5px 10px; margin-right: 25px; translate: 0px -240px;"
+        >Ir a Accesorios</a
+      >
+    </div>
+
+    <div class="container-mobile" style="margin-bottom: 30px;">
+      <p class="txt-medium negrita" style="margin-bottom: 5px;">
+        <b class="fuccia">Electro</b> Lobbyx
+      </p>
+      <p class="txt-small thin" style="margin-bottom: 0;">
+        Tu vida mucho más fácil.
+      </p>
+      <img
+        src="https://tecnolobbyx.com/tienda/img/cms/electro-mobile.png"
+        alt="Electrodomesticos"
+        title="Electrodomesticos"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <a
+        href="https://tecnolobbyx.com/tienda/19-electrodomesticos"
+        class="btn"
+        style="translate: 0px -15px;">Ver más</a
+      >
+    </div>
+
+    <div class="container-mobile" style="margin-bottom: 30px;">
+      <p class="txt-medium negrita" style="margin-bottom: 5px;">
+        <b class="fuccia">Gamer</b> Zone
+      </p>
+      <a
+        class="btn boton-gamer"
+        href="https://tecnolobbyx.com/tienda/62-consolas"
+        style="translate: 0;">Ver más</a
+      >
+      <img
+        src="https://tecnolobbyx.com/tienda/img/cms/gamer-mobile.png"
+        alt="Zona Gamer"
+        title="Zona Gamer"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+
+    <div class="linea-home"></div>
+
+    <script src="https://static.elfsight.com/platform/platform.js" async=""
+    ></script>
+    <div
+      class="elfsight-app-0fd4a842-7757-4dd8-99aa-c91e78606842"
+      data-elfsight-app-lazy=""
+    >
+    </div>
+
+    <div class="row mapa">
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3404.592314906506!2d-64.18108032350908!3d-31.425356696686737!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9432a33bea2bcabd%3A0xa218add36036fea4!2sLobbyx%20-%20Celulares%20y%20tecnolog%C3%ADa!5e0!3m2!1ses!2sar!4v1732765330862!5m2!1ses!2sar"
+        width="600"
+        height="450"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+
+    <div class="faq-container preguntas-frecuentes">
+      <h5 class="titulo">Preguntas Frecuentes</h5>
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Cómo comprar o realizar un pedido en linea en LobbyX?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          Comprar en LobbyX es muy simple, tienes dos opciones de compra:
+          <br /><br />
+          A. Compra en Linea: Podes directamente comprar tu producto desde nuestra
+          web, desde el carrito de compras, siguiendo los pasos asignados, una vez
+          ingresado todos los datos de compra, finalizas la misma y solo esperas a
+          que el equipo de LobbyX se contacte con vos para coordinar la entrega del
+          producto.
+          <br /><br />
+          B.Comprar con atención personalizada: En este caso puedes ponerte en contacto
+          por teléfono o Whatsapp y un Asesor de LobbyX estará a tu disposición para
+          guiarte en la compra de tu producto. También podes coordinar los retiros
+          en la sucursal así también los pagos en efectivo billete y transferencia.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Cuáles son los medios de pago disponibles en LobbyX?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          En LobbyX Podes pagar como vos quieras! Recibimos todos los medios de
+          pago.
+          <br />
+          -Efectivo en pesos, dólares y otras monedas ($, U$D)
+          <br />
+          -Transferencia Bancaria con importantes descuentos.
+          <br />
+          -Debito y Credito con todas las tarjetas Visa, Master o Amex Bancarizadas
+          y promociones y ofertas en cuotas según la disponibilidad del momento.
+          <br />
+          -Wise, Payoneer, Zelle, Delle, y otras monedas internacionales.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>
+            ¿Qué cobertura tiene la garantía y cómo puedo hacer uso de ella?
+          </p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          -Elegiste Bien! Todos nuestros productos cuentan con Garantía. Todo lo
+          que es Teléfonos Celulares Xiaomi, Samsung y Motorola con Garantía de
+          2 Años, Teléfonos Apple Garantia Oficial de 1 Año y en Usados
+          Seleccionados 3 Meses. Notebooks y Tvs Nuevos tienen Garantía de 1
+          Año. El resto de los productos (Smartwatch, Auriculares, Accesorios)
+          cuentan con 6 meses de Garantia.
+          <br /><br />
+          -Para hacer uso de la misma simplemente tienes que ponerte en contacto con
+          nosotros y seguir los pasos que puedes encontrar más detallados en nuestra
+          Política de Garantía
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿LobbyX Cuenta con Servicio o Asistencia Post Venta?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          ¡Estamos para ayudarte! Y queremos asistirte en cada paso. Por eso,
+          además de contar con atención personalizada también estamos a tu
+          disposición durante y después de la compra, para que vos solo tengas
+          que disfrutar.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Cómo funciona la política de devolución y reembolso de LobbyX?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          Puedes leer nuestra politica de Devolucion y Reembolso <a
+            href="https://tecnolobbyx.com/tienda/content/15-politica-de-devoluciones"
+            target="_blank"
+            style="text-decoration: underline;">Aquí</a
+          >.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Realizan envío?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          ¡Realizamos envíos a todo el país! Enviamos tu producto con las
+          principales empresas de mensajería como Send Box, Andreani, Oca, etc
+          para envios a otras provincias. Y en la Provincia de Córdoba contamos
+          con Servicio de Comisionistas que te llevan el producto hasta la
+          puerta de tu casa, pudiendo así también abonar el producto
+          Contrareembolso o con un punto de retiro cercano a tu casa.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>
+            ¿Cuál es el tiempo estimado de entrega para los pedidos de LobbyX?
+          </p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          Las entregas en el local son inmediatas en el caso de que tengamos
+          stock disponible del producto solicitado. A veces puede suceder que en
+          el mismo momento no tengamos disponibilidad en local y si en depósito,
+          lo cual la demora es el tiempo de logística que suele ser 1-2 Horas.
+          <br /><br />
+          Envíos en la Ciudad de Córdoba y alrededores tu producto te llega en el
+          día.
+          <br /><br />
+          Envíos a la provincia de Córdoba 24 a 72 Hs según ubicación, dia y logística.
+          <br /><br />
+          Envíos a otras provincias puede demorar de 1 a 7 días hábiles, dependiendo
+          también ubicación y logística externa.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Es posible recoger mi compra en una tienda física de LobbyX?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          Claro! Podes retirar por nuestra tienda física ubicada en Nueva
+          Córdoba en los horarios de atención al público: de Lunes a Viernes de
+          10.30Hs a 19Hs y Sabados de 10.30 a 14Hs.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Dónde están ubicados?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          Estamos ubicados en la Calle Av. Poeta Lugones 176 CP:5000 Nueva
+          Córdoba, Córdoba
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Cuáles son los horarios de atención?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          Los horarios de atencion al publico son de 10.30 a 19Hs de Lunes a
+          Viernes y Sábados de 10.30 a 14Hs
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question">
+          <p>¿Qué promociones y descuentos especiales ofrece LobbyX?</p>
+          <p class="ver">+</p>
+          <p class="no-ver oculto">-</p>
+        </div>
+        <div class="faq-answer">
+          ¡Tenemos muchos beneficios para vos!
+          <br /><br />
+          Tenes el 30% Off sobre el precio de lista en Xiaomi, Samsung y Motorola
+          en Teléfonos Celulares
+          <br /><br />
+          En iPhone tenes de regalo: Cargador, Funda y Protector de pantalla
+          <br /><br />
+          Contamos con días especiales de cuotas sin interes con Santander y otros
+          bancos (Consulta los días disponibles)
+          <br /><br />
+          A demás contamos con ofertas y promociones especiales.
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      const questions = document.querySelectorAll(".faq-question");
+
+      questions.forEach((question) => {
+        question.addEventListener("click", () => {
+          const faqItem = question.parentElement;
+          const answer = question.nextElementSibling;
+          const plusSign = question.querySelector(".ver");
+          const minusSign = question.querySelector(".no-ver");
+
+          // Cierra otras respuestas abiertas y oculta otros signos
+          document.querySelectorAll(".faq-item").forEach((item) => {
+            if (item !== faqItem) {
+              item.classList.remove("active");
+              // Resetea los signos a "+"
+              item.querySelector(".ver").classList.remove("oculto");
+              item.querySelector(".no-ver").classList.add("oculto");
+            }
+          });
+
+          // Alterna la clase 'active' en el ítem actual
+          faqItem.classList.toggle("active");
+
+          // Alterna los signos "+" y "-"
+          if (faqItem.classList.contains("active")) {
+            plusSign.classList.add("oculto");
+            minusSign.classList.remove("oculto");
+          } else {
+            plusSign.classList.remove("oculto");
+            minusSign.classList.add("oculto");
+          }
+        });
+      });
+    </script>
+  </section>
+</LayoutPrincipal>
