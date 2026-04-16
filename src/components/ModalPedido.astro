@@ -9,6 +9,7 @@ const {
   cuota9,
   cuota12,
   phoneNumber = "5493513473549",
+  textoBotonCompra = "¡Compra con 30% Off en LobbyX!",
 } = Astro.props;
 
 // Helper para formatear moneda dentro del componente
@@ -21,7 +22,7 @@ const f = (val) =>
 ---
 
 <a class="promo-btn" id="openModal" href="#">
-  ¡Compra con 30% Off en LobbyX!
+  {textoBotonCompra}
   <img
     src="https://tecnolobbyx.com/tienda/img/click.png"
     alt="click"
@@ -81,7 +82,7 @@ const f = (val) =>
             Efectivo/Transferencia: {f(precioEfectivo)} (Descuento aplicado)
           </option>
           <option value={`Débito (${f(precioDebito)})`}>
-            Débito: {f(precioDebito)} (5% OFF sobre lista)
+            Débito: {f(precioDebito)} (Descuento aplicado)
           </option>
           <option value={`Crédito 1 Pago (${f(precioLista)})`}>
             Crédito 1 Pago: {f(precioLista)}
