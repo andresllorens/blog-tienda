@@ -184,7 +184,11 @@ const jsonLd = {
 };
 ---
 
-<LayoutPrincipal title={name} meta_description={meta_description} whatsappUrl={whatsappUrl}>
+<LayoutPrincipal
+  title={name}
+  meta_description={meta_description}
+  whatsappUrl={whatsappUrl}
+>
   <div class="row product-container js-product-container">
     <div class="col-md-6">
       <h1 class="h1" style="text-align: center;">{name}</h1>
@@ -277,12 +281,21 @@ const jsonLd = {
           <img
             src="https://tecnolobbyx.com/tienda/img/garantia.png"
             alt="Garantía"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
           />
           <span>{textoGarantia}</span>
         </div>
 
         <div class="item">
-          <img src="https://tecnolobbyx.com/tienda/img/envio.png" alt="Envío" />
+          <img
+            src="https://tecnolobbyx.com/tienda/img/envio.png"
+            alt="Envío"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
           <span>Envío Express Gratis</span>
         </div>
 
@@ -290,6 +303,9 @@ const jsonLd = {
           <img
             src="https://tecnolobbyx.com/tienda/img/local.png"
             alt="Ubicación"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
           />
           <span>Tienda Física en Córdoba</span>
         </div>

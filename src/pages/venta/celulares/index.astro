@@ -30,9 +30,16 @@ for (const cat of categories) {
 // Extraer variables del objeto category
 const name = category.name;
 const meta_description = category.meta_description;
+
+const whatsappUrl =
+  "https://api.whatsapp.com/send/?phone=543513473549&text=Hola+Lobbyx%21+Queria+consultarte+sobre...&type=phone_number&app_absent=0";
 ---
 
-<LayoutPrincipal title={name} meta_description={meta_description}>
+<LayoutPrincipal
+  title={name}
+  meta_description={meta_description}
+  whatsappUrl={whatsappUrl}
+>
   <div
     class="row product-container js-product-container"
     style="padding: 5% 1%;"
@@ -233,12 +240,20 @@ const meta_description = category.meta_description;
       }
     </style>
   </div>
-  <section id="content" class="page-content page-cms page-cms-19" style="max-width: 100%;">
+  <section
+    id="content"
+    class="page-content page-cms page-cms-19"
+    style="max-width: 100%;"
+  >
     <div class="imagen-portada">
       <img
         src="https://tecnolobbyx.com/tienda/img/cms/celulares.png"
-        alt="Descripción de la imagen"
+        alt="Banner Celulares"
         style="width: 100%; height: auto; object-fit: contain;"
+        title="Banner Celulares"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
       />
       <div class="texto-portada">
         <p class="txt-medio">Teléfonos Celulares</p>
@@ -255,8 +270,12 @@ const meta_description = category.meta_description;
         <p class="txt-medium marca">
           <img
             src="https://tecnolobbyx.com/tienda/img/cms/apple.png"
-            alt="Descripción de la imagen"
+            alt="Logo Apple"
             style="object-fit: contain; display: inline-block;"
+            title="Logo Apple"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
           />
           Apple
         </p>
@@ -271,8 +290,12 @@ const meta_description = category.meta_description;
       <div class="col-md-6">
         <img
           src="https://tecnolobbyx.com/tienda/img/cms/iphone.png"
-          alt="Descripción de la imagen"
+          alt="iphone 16 pro max"
           style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
+          title="iphone 16 pro max"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
         />
       </div>
     </div>
@@ -280,16 +303,24 @@ const meta_description = category.meta_description;
       <div class="col-md-6">
         <img
           src="https://tecnolobbyx.com/tienda/img/cms/xiaomi-redmi.png"
-          alt="Descripción de la imagen"
+          alt="xiaomi-redmi"
           style="width: 100%; height: auto; max-height: 561px; object-fit: contain; object-position: left;"
+          title="xiaomi-redmi"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
         />
       </div>
       <div class="col-md-6 box-prod padding-5">
         <p class="txt-medium marca">
           <img
             src="https://tecnolobbyx.com/tienda/img/cms/xiaomi.png"
-            alt="Descripción de la imagen"
+            alt="Logo Xiaomi"
             style="object-fit: contain; display: inline-block;"
+            title="Logo Xiaomi"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
           />
           Xiaomi
         </p>
@@ -303,213 +334,75 @@ const meta_description = category.meta_description;
             >
           </b></b
         >
-      </div><b><b> </b></b>
-    </div><b
-      ><b>
-        <div class="row banner-prod" style="background-color: #f0f0f0;">
-          <div class="col-md-6 box-prod padding-5">
-            <p class="txt-medium marca">
-              <img
-                src="https://tecnolobbyx.com/tienda/img/cms/samsung.png"
-                alt="Descripción de la imagen"
-                style="object-fit: contain; display: inline-block;"
-              />
-            </p>
-            <br />
-            <p class="txt-medium">El universo</p>
-            <p class="txt-medium"><b>de teléfonos Samsung</b></p>
-            <p class="txt-medium">en tus manos</p>
-            <a class="boton-ir" href="https://tecnolobbyx.com/tienda/47-samsung"
+      </div>
+    </div>
+    <div class="row banner-prod" style="background-color: #f0f0f0;">
+      <div class="col-md-6 box-prod padding-5">
+        <p class="txt-medium marca">
+          <img
+            src="https://tecnolobbyx.com/tienda/img/cms/samsung.png"
+            alt="Logo Samsung"
+            style="object-fit: contain; display: inline-block;"
+            title="Logo Samsung"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </p>
+        <br />
+        <p class="txt-medium">El universo</p>
+        <p class="txt-medium"><b>de teléfonos Samsung</b></p>
+        <p class="txt-medium">en tus manos</p>
+        <a class="boton-ir" href="https://tecnolobbyx.com/tienda/47-samsung"
+          >Ir a Celulares</a
+        >
+      </div>
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/samsung-cel.png"
+          alt="Celular Samsung"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
+          title="Celular Samsung"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+    </div>
+    <div class="row banner-prod" style="justify-content: space-between;">
+      <div class="col-md-6">
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/motorola-cel.png"
+          alt="Descripción de la imagen"
+          style="width: 100%; height: auto; max-height: 561px; object-fit: contain; object-position: left;"
+        />
+      </div>
+      <div class="col-md-6 box-prod padding-5">
+        <p class="txt-medium marca">
+          <img
+            src="https://tecnolobbyx.com/tienda/img/cms/motorola.png"
+            alt="Celular motorola"
+            style="object-fit: contain; display: inline-block;"
+            title="Celular motorola"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+          Motorola
+        </p>
+        <br />
+        <p class="txt-medium">Todas las Novedades en</p>
+        <p class="txt-medium">Smartphones</p>
+        <p class="txt-medium"><b>Motorola<b></b></b></p><b
+          ><b>
+            <a
+              class="boton-ir"
+              href="https://tecnolobbyx.com/tienda/48-motorola"
               >Ir a Celulares</a
             >
-          </div>
-          <div class="col-md-6">
-            <img
-              src="https://tecnolobbyx.com/tienda/img/cms/samsung-cel.png"
-              alt="Descripción de la imagen"
-              style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
-            />
-          </div>
-        </div>
-        <div class="row banner-prod" style="justify-content: space-between;">
-          <div class="col-md-6">
-            <img
-              src="https://tecnolobbyx.com/tienda/img/cms/motorola-cel.png"
-              alt="Descripción de la imagen"
-              style="width: 100%; height: auto; max-height: 561px; object-fit: contain; object-position: left;"
-            />
-          </div>
-          <div class="col-md-6 box-prod padding-5">
-            <p class="txt-medium marca">
-              <img
-                src="https://tecnolobbyx.com/tienda/img/cms/motorola.png"
-                alt="Descripción de la imagen"
-                style="object-fit: contain; display: inline-block;"
-              />
-              Motorola
-            </p>
-            <br />
-            <p class="txt-medium">Todas las Novedades en</p>
-            <p class="txt-medium">Smartphones</p>
-            <p class="txt-medium"><b>Motorola<b></b></b></p><b
-              ><b>
-                <a
-                  class="boton-ir"
-                  href="https://tecnolobbyx.com/tienda/48-motorola"
-                  >Ir a Celulares</a
-                >
-              </b></b
-            >
-          </div><b><b> </b></b>
-        </div><b
-          ><b>
-            <div
-              class="container-mobile"
-              style="background-image: linear-gradient(to bottom, rgb(51, 51, 51) 50%, #fff 51%);"
-            >
-              <p
-                class="txt-medium"
-                style="margin-bottom: 5px; text-align: center; line-height: 2.25rem; margin-left: 25px; translate: 0 100px;     color: #FFF;"
-              >
-                TIENDA DE <b>CELULARES</b> LIBERADOS EN CÓRDOBA
-              </p>
-              <p
-                class="txt-small thin"
-                style="margin-bottom: 0; text-align: center; margin-left: 25px; translate: 0 100px; color: #FFF;"
-              >
-                Garantía de 1año / envío gratis
-              </p>
-              <img
-                src="https://tecnolobbyx.com/tienda/img/cms/inicio-celulares-mobile.png"
-                alt="Banner de celulares"
-                id="banner-celulares-mobile"
-                style="width: 100%; height: auto; object-fit: contain;"
-              />
-            </div>
-            <div
-              class="container-mobile"
-              style="padding: 40px 0; background-color: #f0f0f0;"
-            >
-              <p
-                class="txt-medium"
-                style="margin-bottom: 15px; text-align: start; padding-left: 10vw;"
-              >
-                <img
-                  src="https://tecnolobbyx.com/tienda/img/cms/apple.png"
-                  alt="Logo Apple"
-                  style="width: 2.75rem;"
-                /> Apple
-              </p>
-              <p
-                class="txt-medium negrita"
-                style="margin-bottom: 15px; text-align: start; padding-left: 10vw; font-size: 2rem; line-height: 2.5rem;"
-              >
-                ¡Comprá tu iphone HOY!
-              </p>
-              <p
-                class="txt-small thin"
-                style="margin-bottom: 0; text-align: start; padding-left: 10vw;"
-              >
-                y accede a Beneficios y Regalos Exclusivos.
-              </p>
-              <img
-                src="https://tecnolobbyx.com/tienda/img/cms/iphone.png"
-                alt="Teléfonos Celulares"
-              />
-              <a href="https://tecnolobbyx.com/tienda/49-iphone" class="btn"
-                >Ir a Celulares</a
-              >
-            </div>
-            <div class="container-mobile" style="padding: 40px 0;">
-              <p
-                class="txt-medium"
-                style="margin-bottom: 15px; text-align: start; padding-left: 10vw;"
-              >
-                <img
-                  src="https://tecnolobbyx.com/tienda/img/cms/xiaomi.png"
-                  alt="Logo Xiaomi"
-                  style="width: 2.75rem;"
-                /> Xiaomi
-              </p>
-              <p
-                class="txt-medium"
-                style="margin-bottom: 15px; text-align: end; padding-right: 10vw; line-height: 2.5rem;"
-              >
-                Todos los smartphones xiaomi de <b style="font-weight: 800;"
-                  >última generación</b
-                >
-                en un solo lugar
-              </p>
-              <img
-                src="https://tecnolobbyx.com/tienda/img/cms/xiaomi-redmi.png"
-                alt="Teléfonos Celulares"
-              />
-              <a
-                href="https://tecnolobbyx.com/tienda/25-Xiaomi"
-                style="translate: 0px 0px"
-                class="btn">Ir a Celulares</a
-              >
-            </div>
-            <div
-              class="container-mobile"
-              style="padding: 40px 0; background-color: #f0f0f0;"
-            >
-              <p
-                class="txt-medium"
-                style="margin-bottom: 15px; text-align: start; padding-left: 10vw;"
-              >
-                <img
-                  src="https://tecnolobbyx.com/tienda/img/cms/samsung.png"
-                  alt="Logo Samsung"
-                  style="height: 1.15rem;width: fit-content;border-radius: 0;"
-                />
-              </p>
-              <p
-                class="txt-medium"
-                style="margin-bottom: 15px; text-align: start; padding-left: 10vw; line-height: 2.5rem;"
-              >
-                El universo<br />
-                <b style="font-weight: 800;">de teléfonos Samsung </b><br />
-                en tus manos
-              </p>
-              <img
-                src="https://tecnolobbyx.com/tienda/img/cms/samsung-cel.png"
-                alt="Teléfonos Celulares"
-              />
-              <a href="https://tecnolobbyx.com/tienda/47-samsung" class="btn"
-                >Ir a Celulares</a
-              >
-            </div>
-            <div class="container-mobile" style="padding: 40px 0;">
-              <p
-                class="txt-medium"
-                style="margin-bottom: 15px; text-align: start; padding-left: 10vw;"
-              >
-                <img
-                  src="https://tecnolobbyx.com/tienda/img/cms/motorola.png"
-                  alt="Logo Xiaomi"
-                  style="width: 2.75rem;"
-                /> Motorola
-              </p>
-              <p
-                class="txt-medium"
-                style="margin-bottom: 15px; text-align: end; padding-right: 10vw; line-height: 2.5rem;"
-              >
-                Todas las Novedades<br />
-                en Smartphones <br />
-                <b style="font-weight: 800;">Motorola</b>
-              </p>
-              <img
-                src="https://tecnolobbyx.com/tienda/img/cms/motorola-cel.png"
-                alt="Teléfonos Celulares"
-              />
-              <a href="https://tecnolobbyx.com/tienda/48-motorola" class="btn"
-                >Ir a Celulares</a
-              >
-            </div>
           </b></b
-        ></b
-      ></b
-    >
-  </section>
-</LayoutPrincipal>
+        >
+      </div>
+    </div>
+  </section></LayoutPrincipal
+>
