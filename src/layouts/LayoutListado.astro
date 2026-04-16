@@ -1,0 +1,67 @@
+---
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+const { title } = Astro.props;
+const { meta_description } = Astro.props;
+const { whatsappUrl } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={meta_description} />
+    <link rel="icon" type="image/vnd.microsoft.icon" href="https://tecnolobbyx.com/tienda/img/favicon.ico?1699386201"/>
+    <link rel="shortcut icon" type="image/x-icon" href="https://tecnolobbyx.com/tienda/img/favicon.ico?1699386201"/>
+    <link rel="stylesheet" href="https://tecnolobbyx.com/tienda/modules/mobbex/views/css/front.css?ver=3.5.2" type="text/css" media="all"/>
+    <link rel="stylesheet" href="https://tecnolobbyx.com/theme.css" type="text/css" media="all"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Tag -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-11427887911"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      window.gtag = window.gtag || gtag;
+      gtag("js", new Date());
+      gtag("config", "AW-11427887911");
+    </script>
+    <!-- End Google Tag -->
+    <!-- Meta Tag -->
+    <script is:inline>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      
+      fbq('init', '1112325287044375'); 
+      fbq('track', 'PageView');
+    </script>
+
+    <noscript>
+      <img height="1" width="1" style="display:none" 
+          src="https://www.facebook.com/tr?id=1112325287044375&ev=PageView&noscript=1" />
+    </noscript>
+    <!-- End Meta Tag -->
+     <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider/dist/nouislider.min.css">
+</head>
+  </head>
+  <body>
+    <main>
+      <Header whatsappUrl={whatsappUrl} />
+      <section id="wrapper">
+        <slot />
+      </section>
+      <Footer />
+    </main>
+  </body>
+</html>
