@@ -1,31 +1,90 @@
 ---
-import LayoutPrincipal from "../../../layouts/LayoutPrincipal.astro";
-import { getCategoryById } from "../../../lib/prestashop";
-import { Image } from "astro:assets";
+import LayoutListado from "../../../layouts/LayoutListado.astro";
+import {
+  getCategoryById,
+  getProductsByCategory,
+} from "../../../lib/prestashop";
+import { getImageUrl } from "../../../lib/utils";
 
 const category = await getCategoryById(18);
 
-if (!category?.associations?.categories) {
-  console.error("No se pudo cargar la categoría 18 para /venta/[name].");
-  return [];
-}
-
 delete category.associations.products;
 
-const categories = category.associations.categories || [];
+// Fase 1: cargar productos reales de la categoría 18 y normalizar view model
+const rawProducts = await getProductsByCategory(18, { activeOnly: true });
 
-category.associations.categories = [];
-
-for (const cat of categories) {
-  if (!cat?.id) {
-    continue;
-  }
-
-  const c = await getCategoryById(cat.id);
-  if (c?.active === "1") {
-    category.associations.categories.push(c);
-  }
+function parsePrice(raw: any) {
+  if (raw === null || raw === undefined) return 0;
+  const n = Number(raw);
+  if (!Number.isNaN(n)) return n;
+  const cleaned = String(raw)
+    .replace(/\./g, "")
+    .replace(/,/g, ".")
+    .replace(/[^0-9.\-]/g, "");
+  const f = parseFloat(cleaned);
+  return Number.isNaN(f) ? 0 : f;
 }
+
+const productsView = (rawProducts || []).map((p, idx) => {
+  const id = Number(p?.id ?? p?.id_product ?? 0);
+  let name = "";
+  if (typeof p?.name === "object") {
+    const vals = Object.values(p.name);
+    name = vals[0] ?? "";
+  } else {
+    name = p?.name ?? "";
+  }
+
+  const priceNum = parsePrice(
+    p?.price ?? p?.price_amount ?? p?.price_tax_incl ?? 0,
+  );
+  const price_formatted =
+    typeof p?.price === "string"
+      ? p.price
+      : new Intl.NumberFormat("es-AR", {
+          style: "currency",
+          currency: "ARS",
+          maximumFractionDigits: 0,
+        }).format(priceNum);
+
+  // image
+  let image = null;
+  const imgId = p?.id_default_image ?? null;
+  if (imgId && id) {
+    image = getImageUrl(id, imgId);
+  }
+
+  const url =
+    p?.link ||
+    p?.url ||
+    (id
+      ? `https://tecnolobbyx.com/tienda/celulares/${id}-${(p?.link_rewrite || "").toString()}.html`
+      : "#");
+
+  return {
+    id,
+    name,
+    url,
+    price: priceNum,
+    price_formatted,
+    image,
+    relevance: idx,
+    active: p?.active === "1" || p?.active === 1 || p?.active === true,
+  };
+});
+
+const priceVals = productsView
+  .map((x) => x.price)
+  .filter((n) => typeof n === "number");
+const priceMin = priceVals.length ? Math.min(...priceVals) : 0;
+const priceMax = priceVals.length ? Math.max(...priceVals) : 0;
+const _fmtCurrency = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "ARS",
+  maximumFractionDigits: 0,
+});
+const priceMinFormatted = priceMin ? _fmtCurrency.format(priceMin) : "$0";
+const priceMaxFormatted = priceMax ? _fmtCurrency.format(priceMax) : "$0";
 
 // Extraer variables del objeto category
 const name = category.name;
@@ -35,374 +94,529 @@ const whatsappUrl =
   "https://api.whatsapp.com/send/?phone=543513473549&text=Hola+Lobbyx%21+Queria+consultarte+sobre...&type=phone_number&app_absent=0";
 ---
 
-<LayoutPrincipal
+<LayoutListado
   title={name}
   meta_description={meta_description}
   whatsappUrl={whatsappUrl}
 >
-  <div
-    class="row product-container js-product-container"
-    style="padding: 5% 1%;"
-    id="pagina-celulares"
-  >
-    <section class="brands-section">
-      <h1 class="section-title">Nuestras Marcas</h1>
-      <div class="brands-grid">
-        <a href="./celulares/apple" class="brand-card">
-          <div class="brand-logo-wrapper">
-            <Image
-              src="https://tecnolobbyx.com/tienda/img/iphone.png"
-              alt="Celulares Apple"
-              width={600}
-              height={600}
-            />
-          </div>
-          <span class="brand-name">Ver iPhones</span>
-        </a>
-        <a href="./celulares/xiaomi" class="brand-card">
-          <div class="brand-logo-wrapper">
-            <Image
-              src="https://tecnolobbyx.com/tienda/img/xiaomi.png"
-              alt="Celulares Xiaomi"
-              width={600}
-              height={600}
-            />
-          </div>
-          <span class="brand-name">Ver Redmi</span>
-        </a>
-        <a href="./celulares/samsung" class="brand-card">
-          <div class="brand-logo-wrapper">
-            <Image
-              src="https://tecnolobbyx.com/tienda/img/samsung.png"
-              alt="Celulares Samsung"
-              width={600}
-              height={600}
-            />
-          </div>
-          <span class="brand-name">Ver Galaxy</span>
-        </a>
-        <a href="./celulares/motorola" class="brand-card">
-          <div class="brand-logo-wrapper">
-            <Image
-              src="https://tecnolobbyx.com/tienda/img/motorola.png"
-              alt="Celulares Motorola"
-              width={600}
-              height={600}
-            />
-          </div>
-          <span class="brand-name">Ver Moto</span>
-        </a>
-        <a href="./celulares/infinix" class="brand-card">
-          <div class="brand-logo-wrapper">
-            <Image
-              src="https://tecnolobbyx.com/tienda/img/infinix.png"
-              alt="Celulares Infinix"
-              width={600}
-              height={600}
-            />
-          </div>
-          <span class="brand-name">Ver Infinix</span>
-        </a>
-      </div>
-      <div class="button-container">
-        <a href="./celulares" class="btn-celulares">
-          Ver todos los celulares
-        </a>
-      </div>
-    </section>
-    <style>
-      .brands-section {
-        padding: 40px 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .section-title {
-        text-align: center;
-        margin-bottom: 30px;
-        font-weight: 700;
-        color: #333;
-      }
-
-      /* Configuración de la cuadrícula */
-      .brands-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-        width: 100%;
-      }
-
-      /* Cambio a 3 columnas en Desktop (768px o más) */
-      @media (min-width: 768px) {
-        .brands-grid {
-          grid-template-columns: repeat(3, 1fr);
-          gap: 25px;
-        }
-
-        #pagina-celulares {
-          display: none;
-        }
-      }
-
-      @media (max-width: 768px) {
-        #content {
-          display: none;
-        }
-      }
-
-      /* Estilo de la tarjeta individual */
-      .brand-card {
-        display: flex;
-        flex: 0 1 calc(33.33% - 10px);
-        min-width: 140px;
-        box-sizing: border-box;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 12px;
-        text-decoration: none;
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease;
-      }
-
-      .brand-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-        border-color: #007bff;
-        flex: 0 1 calc(50% - 8px);
-        min-width: 140px;
-        box-sizing: border-box;
-      }
-
-      .brand-logo-wrapper {
-        height: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 10px;
-      }
-
-      .brand-logo-wrapper img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        /* Filtro opcional para que los logos se vean uniformes */
-        filter: grayscale(20%);
-      }
-
-      .brand-name {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #333;
-      }
-      .button-container {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        margin-top: 20px; /* Espacio respecto al grid */
-        padding: 0 15px; /* Para que no toque los bordes en móviles */
-        box-sizing: border-box;
-      }
-
-      .btn-celulares {
-        display: block;
-        width: 100%;
-        max-width: 400px; /* Ajusta esto según prefieras */
-        padding: 15px 0;
-
-        background: linear-gradient(90deg, #6a11cb, #a445ed, #6a11cb);
-        background-size: 200% auto;
-        background-position: left center;
-
-        color: #fff !important;
-        text-align: center;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 1.1rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
-
-        transition:
-          transform 0.2s ease,
-          background-position 0.5s ease;
-        cursor: pointer;
-        border: none;
-      }
-
-      .btn-celulares:hover {
-        transform: scale(0.98);
-        background-position: right center;
-      }
-    </style>
-  </div>
-  <section
-    id="content"
-    class="page-content page-cms page-cms-19"
-    style="max-width: 100%;"
-  >
-    <div class="imagen-portada">
-      <img
-        src="https://tecnolobbyx.com/tienda/img/cms/celulares.png"
-        alt="Banner Celulares"
-        style="width: 100%; height: auto; object-fit: contain;"
-        title="Banner Celulares"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-      <div class="texto-portada">
-        <p class="txt-medio">Teléfonos Celulares</p>
-        <p class="titulo">CELULARES</p>
-        <p class="txt-medio">Nuevos y Liberados</p>
-        <p class="txt-descripcion">
-          Las mejores Marcas en Smartphones: Xiaomi, Apple, Samsung, Motorola,
-          Infinix y Mucho Mas
-        </p>
-      </div>
-    </div>
-    <div class="row banner-prod" style="background-color: #f0f0f0;">
-      <div class="col-md-6 box-prod padding-5">
-        <p class="txt-medium marca">
-          <img
-            src="https://tecnolobbyx.com/tienda/img/cms/apple.png"
-            alt="Logo Apple"
-            style="object-fit: contain; display: inline-block;"
-            title="Logo Apple"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-          Apple
-        </p>
-        <br />
-        <p class="txt-medium negrita">¡Comprá tu iphone HOY!</p>
-        <p class="txt-medium thin">y accede a Beneficios y Regalos</p>
-        <p class="txt-medium thin">Exclusivos</p>
-        <a class="boton-ir" href="https://tecnolobbyx.com/tienda/49-iphone"
-          >Ir a Celulares</a
-        >
-      </div>
-      <div class="col-md-6">
+  <div class="container">
+    <div id="js-product-list-header">
+      <div
+        class="imagen-portada cat-Celulares"
+        style="display: flex; align-items: center;"
+      >
         <img
-          src="https://tecnolobbyx.com/tienda/img/cms/iphone.png"
-          alt="iphone 16 pro max"
-          style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
-          title="iphone 16 pro max"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
-    </div>
-    <div class="row banner-prod" style="justify-content: space-between;">
-      <div class="col-md-6">
-        <img
-          src="https://tecnolobbyx.com/tienda/img/cms/xiaomi-redmi.png"
-          alt="xiaomi-redmi"
-          style="width: 100%; height: auto; max-height: 561px; object-fit: contain; object-position: left;"
-          title="xiaomi-redmi"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
-      <div class="col-md-6 box-prod padding-5">
-        <p class="txt-medium marca">
-          <img
-            src="https://tecnolobbyx.com/tienda/img/cms/xiaomi.png"
-            alt="Logo Xiaomi"
-            style="object-fit: contain; display: inline-block;"
-            title="Logo Xiaomi"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-          Xiaomi
-        </p>
-        <br />
-        <p class="txt-medium">Todos los smartphones</p>
-        <p class="txt-medium">xiaomi de <b>última generación<b></b></b></p><b
-          ><b>
-            <p class="txt-medium">en un solo lugar</p>
-            <a class="boton-ir" href="https://tecnolobbyx.com/tienda/25-Xiaomi"
-              >Ir a Celulares</a
-            >
-          </b></b
-        >
-      </div>
-    </div>
-    <div class="row banner-prod" style="background-color: #f0f0f0;">
-      <div class="col-md-6 box-prod padding-5">
-        <p class="txt-medium marca">
-          <img
-            src="https://tecnolobbyx.com/tienda/img/cms/samsung.png"
-            alt="Logo Samsung"
-            style="object-fit: contain; display: inline-block;"
-            title="Logo Samsung"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-        </p>
-        <br />
-        <p class="txt-medium">El universo</p>
-        <p class="txt-medium"><b>de teléfonos Samsung</b></p>
-        <p class="txt-medium">en tus manos</p>
-        <a class="boton-ir" href="https://tecnolobbyx.com/tienda/47-samsung"
-          >Ir a Celulares</a
-        >
-      </div>
-      <div class="col-md-6">
-        <img
-          src="https://tecnolobbyx.com/tienda/img/cms/samsung-cel.png"
-          alt="Celular Samsung"
-          style="width: 100%; height: auto; max-height: 561px; object-fit: contain;"
-          title="Celular Samsung"
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </div>
-    </div>
-    <div class="row banner-prod" style="justify-content: space-between;">
-      <div class="col-md-6">
-        <img
-          src="https://tecnolobbyx.com/tienda/img/cms/motorola-cel.png"
+          src="https://tecnolobbyx.com/tienda/img/categoria/Celulares.png"
           alt="Descripción de la imagen"
-          style="width: 100%; height: auto; max-height: 561px; object-fit: contain; object-position: left;"
+        />
+        <div class="texto-portada" style="width: 40%;">
+          <p class="txt-medio">Teléfonos Celulares</p>
+          <h1 class="titulo">CELULARES</h1>
+          <p class="txt-medio">Nuevos y Liberados</p>
+          <p class="txt-descripcion">
+            Las mejores Marcas en Smartphones: Xiaomi, Apple, Samsung, Motorola,
+            Infinix y Mucho Mas
+          </p>
+        </div>
+      </div>
+      <div
+        class="container-mobile"
+        style="background-image: linear-gradient(to bottom, rgb(51, 51, 51) 50%, #fff 51%);"
+      >
+        <p
+          class="txt-medium"
+          style="margin-bottom: 5px;text-align: center;line-height: 2.25rem;margin-left: 25px;translate: 0 100px;color: #FFF;font-size: 2rem;"
+        >
+          TIENDA DE <b>CELULARES</b> LIBERADOS EN CÓRDOBA
+        </p>
+        <p
+          class="txt-small thin"
+          style="margin-bottom: 0; text-align: center; margin-left: 25px; translate: 0 100px; color: #FFF; font-size: 1.5rem;"
+        >
+          Garantía de 1año / envío gratis
+        </p>
+        <img
+          src="https://tecnolobbyx.com/tienda/img/cms/inicio-celulares-mobile.png"
+          alt="Banner de celulares"
+          id="banner-celulares-mobile"
+          style="width: 100%; height: auto; object-fit: contain;"
         />
       </div>
-      <div class="col-md-6 box-prod padding-5">
-        <p class="txt-medium marca">
-          <img
-            src="https://tecnolobbyx.com/tienda/img/cms/motorola.png"
-            alt="Celular motorola"
-            style="object-fit: contain; display: inline-block;"
-            title="Celular motorola"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-          Motorola
-        </p>
-        <br />
-        <p class="txt-medium">Todas las Novedades en</p>
-        <p class="txt-medium">Smartphones</p>
-        <p class="txt-medium"><b>Motorola<b></b></b></p><b
-          ><b>
-            <a
-              class="boton-ir"
-              href="https://tecnolobbyx.com/tienda/48-motorola"
-              >Ir a Celulares</a
-            >
-          </b></b
-        >
+    </div>
+
+    <div id="left-column" class="col-xs-12 col-sm-4 col-md-3">
+      <div id="search_filters_wrapper" class="hidden-sm-down">
+        <div id="search_filters" style="margin: 0;">
+          <p class="text-uppercase h6">Filtrar por V</p>
+
+          <section class="facet" data-type="price">
+            <p class="h6 facet-title">Precio</p>
+            <div class="filter-container">
+              <div
+                id="price-slider"
+                style="margin: 20px 10px;"
+                data-min={priceMin}
+                data-max={priceMax}
+              >
+              </div>
+
+              <p class="text-center" id="price-label">
+                {priceMinFormatted} - {priceMaxFormatted}
+              </p>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
-  </section></LayoutPrincipal
->
+
+    <div
+      id="content-wrapper"
+      class="js-content-wrapper left-column col-xs-12 col-sm-8 col-md-9"
+    >
+      <section id="main">
+        <section id="products">
+          <div id="js-product-list-top" class="row products-selection">
+            <div class="col-md-6 hidden-sm-down total-products">
+              <p>
+                Hay {productsView.length}
+                {productsView.length === 1 ? "producto" : "productos"}.
+              </p>
+            </div>
+            <div class="col-md-6">
+              <div class="row sort-by-row">
+                <span class="col-sm-3 col-md-3 hidden-sm-down sort-by"
+                  >Ordenar por:</span
+                >
+                <div class="col-sm-9 col-xs-12 col-md-9 products-sort-order">
+                  <label for="products-sort-select" class="sr-only"
+                    >Ordenar por</label
+                  >
+                  <select
+                    id="products-sort-select"
+                    class="products-sort-select"
+                    aria-label="Ordenar por"
+                    style="width: 100%;"
+                  >
+                    <option value="relevance">Relevancia</option>
+                    <option value="name-asc">Nombre, A a Z</option>
+                    <option value="name-desc">Nombre, Z a A</option>
+                    <option value="price-asc"
+                      >Precio: de más bajo a más alto</option
+                    >
+                    <option value="price-desc"
+                      >Precio, de más alto a más bajo</option
+                    >
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-12 hidden-md-up text-sm-center showing">
+              Mostrando 1-{productsView.length} de {productsView.length}
+              {productsView.length === 1 ? "artículo" : "artículos"}
+            </div>
+          </div>
+
+          <div id="js-product-list">
+            <div class="products row">
+              {
+                productsView.map((producto) => (
+                  <div
+                    class="js-product product col-xs-12 col-sm-6 col-xl-4"
+                    data-price={producto.price}
+                    data-relevance={producto.relevance}
+                  >
+                    <article
+                      class="product-miniature js-product-miniature"
+                      data-id-product={producto.id}
+                      data-id-product-attribute="0"
+                    >
+                      <div class="thumbnail-container reviews-loading">
+                        <div class="thumbnail-top">
+                          <a
+                            href={producto.url}
+                            class="thumbnail product-thumbnail"
+                          >
+                            <img
+                              src={producto.image}
+                              alt={producto.name}
+                              loading="lazy"
+                              width="250"
+                              height="250"
+                              style="padding-top: 85px;"
+                            />
+                          </a>
+                        </div>
+
+                        <div class="product-description">
+                          <h2 class="h3 product-title">
+                            <a href={producto.url}>{producto.name}</a>
+                          </h2>
+
+                          <div class="product-price-and-shipping">
+                            <span class="price" aria-label="Precio">
+                              $&nbsp;
+                              {new Intl.NumberFormat("es-AR").format(
+                                producto.price,
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </section>
+      </section>
+    </div>
+  </div>
+  <script type="module">
+    import noUiSlider from "https://cdn.jsdelivr.net/npm/nouislider@15.8.1/dist/nouislider.mjs";
+    // CSS is loaded via CDN link injected by Vite/ASTRO; keep import-free for runtime
+
+    function initSlider() {
+      const slider = document.getElementById("price-slider");
+      const label = document.getElementById("price-label");
+      const products = Array.from(document.querySelectorAll(".js-product"));
+
+      if (!slider) return;
+
+      let minVal = Number(slider.dataset.min);
+      let maxVal = Number(slider.dataset.max);
+
+      if (!Number.isFinite(minVal)) minVal = 0;
+      if (!Number.isFinite(maxVal)) maxVal = minVal;
+      if (minVal === maxVal) maxVal = minVal + 1;
+
+      // Destroy existing slider if already created (safe re-init)
+      if (slider.noUiSlider) {
+        try {
+          slider.noUiSlider.destroy();
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      try {
+        noUiSlider.create(slider, {
+          start: [minVal, maxVal],
+          connect: true,
+          range: { min: minVal, max: maxVal },
+          format: {
+            to: (value) => Math.round(value),
+            from: (value) => Number(value),
+          },
+        });
+      } catch (err) {
+        console.error("noUiSlider error:", err);
+        return;
+      }
+
+      const formatCurrency = new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0,
+      });
+
+      // Set initial label
+      if (label) {
+        label.textContent = `${formatCurrency.format(minVal)} - ${formatCurrency.format(maxVal)}`;
+      }
+
+      slider.noUiSlider.on("update", function (values) {
+        const [currentMin, currentMax] = values.map(Number);
+        if (label) {
+          label.textContent = `${formatCurrency.format(currentMin)} - ${formatCurrency.format(currentMax)}`;
+        }
+
+        // Filtrar productos por precio
+        products.forEach((product) => {
+          const price = parseFloat(product.dataset.price);
+          if (!Number.isFinite(price)) return;
+          product.style.display =
+            price >= currentMin && price <= currentMax ? "block" : "none";
+        });
+      });
+    }
+
+    function initFilterToggle() {
+      const toggle = document.querySelector(
+        "#search_filters .text-uppercase.h6",
+      );
+      if (!toggle) return;
+
+      const priceSection = document.querySelector(
+        'section.facet[data-type="price"]',
+      );
+      const categorySection = document.querySelector(
+        'section.facet[data-type="category"]',
+      );
+      const sections = [priceSection, categorySection].filter(Boolean);
+      if (!sections.length) return;
+
+      toggle.style.cursor = "pointer";
+
+      function updateText(open) {
+        toggle.textContent = open ? "Filtrar por Ʌ" : "Filtrar por V";
+      }
+
+      function applyState(open) {
+        sections.forEach((s) => {
+          if (!s) return;
+          s.style.display = open ? "" : "none";
+        });
+        updateText(open);
+        toggle.dataset.open = open ? "true" : "false";
+      }
+
+      // Behavior: on large screens (>=768px) filters must always be visible
+      function refreshBehaviour() {
+        const isLarge = window.matchMedia("(min-width: 768px)").matches;
+
+        if (isLarge) {
+          applyState(true);
+          // disable toggling on large screens
+          toggle.onclick = null;
+          toggle.style.pointerEvents = "none";
+          toggle.style.opacity = "1";
+        } else {
+          // enable toggling on small screens
+          toggle.style.pointerEvents = "";
+          toggle.style.opacity = "";
+          // default closed on small screens
+          const initiallyOpen = false;
+          applyState(initiallyOpen);
+          toggle.onclick = function () {
+            const isOpen = toggle.dataset.open === "true";
+            applyState(!isOpen);
+          };
+        }
+      }
+
+      // initialize and keep in sync on resize
+      refreshBehaviour();
+      window.addEventListener("resize", function () {
+        // debounce-like (simple)
+        clearTimeout(window.__filterToggleResizeTimer);
+        window.__filterToggleResizeTimer = setTimeout(refreshBehaviour, 120);
+      });
+    }
+
+    // ---------- Ordenamiento de productos (cliente) ----------
+    function getOrderFromQuery() {
+      try {
+        const qp = new URLSearchParams(window.location.search);
+        const order = qp.get("order") || "";
+        switch (order) {
+          case "product.name.asc":
+            return "name-asc";
+          case "product.name.desc":
+            return "name-desc";
+          case "product.price.asc":
+            return "price-asc";
+          case "product.price.desc":
+            return "price-desc";
+          case "product.position.asc":
+          default:
+            return "relevance";
+        }
+      } catch (e) {
+        return "relevance";
+      }
+    }
+
+    function setOrderQuery(val) {
+      try {
+        const qp = new URLSearchParams(window.location.search);
+        const map = {
+          relevance: "product.position.asc",
+          "name-asc": "product.name.asc",
+          "name-desc": "product.name.desc",
+          "price-asc": "product.price.asc",
+          "price-desc": "product.price.desc",
+        };
+        qp.set("order", map[val] || "product.position.asc");
+        const url = `${window.location.pathname}?${qp.toString()}`;
+        window.history.replaceState({}, "", url);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    function sortProducts(criteria) {
+      const container = document.querySelector("#js-product-list .products");
+      if (!container) return;
+      const items = Array.from(container.querySelectorAll(".js-product"));
+
+      const collator = new Intl.Collator("es", {
+        sensitivity: "base",
+        numeric: true,
+      });
+
+      items.sort((a, b) => {
+        if (criteria === "name-asc" || criteria === "name-desc") {
+          const an = (
+            a.querySelector(".product-title a")?.textContent || ""
+          ).trim();
+          const bn = (
+            b.querySelector(".product-title a")?.textContent || ""
+          ).trim();
+          const cmp = collator.compare(an, bn);
+          return criteria === "name-asc" ? cmp : -cmp;
+        }
+
+        if (criteria === "price-asc" || criteria === "price-desc") {
+          const ap = Number(a.dataset.price) || 0;
+          const bp = Number(b.dataset.price) || 0;
+          return criteria === "price-asc" ? ap - bp : bp - ap;
+        }
+
+        // relevance (default) - use numeric data-relevance
+        const ar = Number(a.dataset.relevance) || 0;
+        const br = Number(b.dataset.relevance) || 0;
+        return ar - br;
+      });
+
+      // Re-append in sorted order
+      for (const it of items) container.appendChild(it);
+    }
+
+    function initSorting() {
+      const select = document.getElementById("products-sort-select");
+      if (!select) return;
+      // set initial value from query
+      const initial = getOrderFromQuery();
+      select.value = initial;
+      sortProducts(initial);
+
+      select.addEventListener("change", function () {
+        const v = select.value;
+        setOrderQuery(v);
+        sortProducts(v);
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () {
+        initSlider();
+        initFilterToggle();
+        initSorting();
+      });
+    } else {
+      initSlider();
+      initFilterToggle();
+      initSorting();
+    }
+  </script>
+
+  <style>
+    /* Personalización rápida para que combine con tu sitio */
+    .products-sort-order {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .products-sort-select {
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #222;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #666 50%),
+        linear-gradient(135deg, #666 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) calc(1em + 2px),
+        calc(100% - 13px) calc(1em + 2px);
+      background-size:
+        5px 5px,
+        5px 5px;
+      background-repeat: no-repeat;
+      cursor: pointer;
+    }
+    @media (max-width: 767px) {
+      .products-sort-order {
+        justify-content: center;
+        margin: 0.5rem 0;
+      }
+    }
+    /* Fix: tarjetas de producto con altura uniforme */
+    .products .js-product {
+      display: flex;
+    }
+    .product-miniature {
+      display: flex;
+      flex-direction: column;
+      height: 420px; /* altura fija por defecto */
+      overflow: hidden;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    .thumbnail-container {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 auto;
+    }
+    .thumbnail-top {
+      height: 250px; /* espacio reservado para la imagen */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .thumbnail-top img {
+      width: auto;
+      max-width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding-top: 0 !important; /* anula inline style */
+      display: block;
+    }
+    .product-description {
+      padding: 12px;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    @media (max-width: 767px) {
+      .product-miniature {
+        height: auto;
+      }
+      .thumbnail-top {
+        height: 200px;
+      }
+    }
+    :global(.noUi-connect) {
+      background: #2fb5d2; /* El color cyan de PrestaShop o el de tu marca */
+    }
+    :global(.noUi-horizontal) {
+      height: 8px;
+    }
+    :global(.noUi-handle) {
+      height: 18px !important;
+      width: 18px !important;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: none;
+    }
+    :global(.noUi-handle:before, .noUi-handle:after) {
+      display: none; /* Quita las rayitas feas del handle */
+    }
+
+    @media (max-width: 767px) {
+      #search_filters_wrapper {
+        display: block !important;
+        margin: 10px 0;
+        width: 100%;
+      }
+    }
+  </style>
+</LayoutListado>
