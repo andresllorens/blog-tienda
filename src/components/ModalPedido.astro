@@ -92,14 +92,19 @@ const f = (val) =>
           <option value={`6 cuotas de ${f(cuota6)} (Total: ${f(cuota6 * 6)})`}>
             6 cuotas fijas de {f(cuota6)} (Total: {f(cuota6 * 6)})
           </option>
-          <option value={`9 cuotas de ${f(cuota9)} (Total: ${f(cuota9 * 9)})`}>
-            9 cuotas fijas de {f(cuota9)} (Total: {f(cuota9 * 9)})
-          </option>
-          <option
-            value={`12 cuotas de ${f(cuota12)} (Total: ${f(cuota12 * 12)})`}
-          >
-            12 cuotas fijas de {f(cuota12)} (Total: {f(cuota12 * 12)})
-          </option>
+          { cuota9 !== false && (
+            <option value={`9 cuotas de ${f(cuota9)} (Total: ${f(cuota9 * 9)})`}>
+              9 cuotas fijas de {f(cuota9)} (Total: {f(cuota9 * 9)})
+            </option>
+          )}
+          
+          { cuota12 !== false && (
+            <option
+              value={`12 cuotas de ${f(cuota12)} (Total: ${f(cuota12 * 12)})`}
+            >
+              12 cuotas fijas de {f(cuota12)} (Total: {f(cuota12 * 12)})
+            </option>
+          )}
         </select>
 
         <div id="camposEnvio">
