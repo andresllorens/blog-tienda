@@ -6,12 +6,12 @@ import {
 } from "../../../lib/prestashop";
 import { getImageUrl } from "../../../lib/utils";
 
-const category = await getCategoryById(19);
+const category = await getCategoryById(61);
 
 delete category.associations.products;
 
-// Fase 1: cargar productos reales de la categoría 19 y normalizar view model
-const rawProducts = await getProductsByCategory(19, { activeOnly: true });
+// Fase 1: cargar productos reales de la categoría 61 y normalizar view model
+const rawProducts = await getProductsByCategory(61, { activeOnly: true });
 
 function parsePrice(raw: any) {
   if (raw === null || raw === undefined) return 0;
@@ -58,7 +58,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     p?.link ||
     p?.url ||
     (id
-      ? `https://tecnolobbyx.com/tienda/electrodomesticos/${id}-${(p?.link_rewrite || "").toString()}.html`
+      ? `https://tecnolobbyx.com/tienda/tablets/${id}-${(p?.link_rewrite || "").toString()}.html`
       : "#");
 
   return {
@@ -101,79 +101,7 @@ const whatsappUrl =
 >
   <div class="container">
     <div id="js-product-list-header">
-      <div
-        class="imagen-portada cat-Electrodomesticos"
-        style="display: flex; align-items: center;"
-      >
-        <img
-          src="https://tecnolobbyx.com/tienda/img/categoria/Electrodomesticos.png"
-          alt="Descripción de la imagen"
-        />
-        <div class="texto-portada" style="width: 40%;">
-          <p
-            class="txt-medium thin"
-            style="font-size: 24px; padding-bottom: 2rem;"
-          >
-            Equipa tu Hogar con los Mejores
-          </p>
-          <p
-            class="txt-medium negrita"
-            style="   font-size: 64px;
-                                                    line-height: 75px;
-                                                    border-left: 4px solid;
-                                                    padding-left: 15px;
-                                                    border-image: linear-gradient(
-                                                    to bottom,
-                                                    #000000 0%,
-                                                    #9747FF 27%,
-                                                    #00D9FF 37%,
-                                                    #07E1FF 66%,
-                                                    #9F2EFF 77%,
-                                                    #FE02FF 83%,
-                                                    #FD02FF 99%) 1;"
-          >
-            Electrodomesticos
-          </p>
-          <br />
-          <p class="txt-medium thin" style="font-size: 24px;width: 50%;">
-            Heladeras, Lavarropas, Televisores, Pequeños Electrodomésticos y
-            Mucho Mas! Aprovecha nuestras promociones y descuentos!
-          </p>
-        </div>
-      </div>
-      <div
-        class="container-mobile"
-        style="
-                background-color: #333333;
-                padding-top: 100px;
-                background-image: url(https://tecnolobbyx.com/tienda/img/categoria/electro-mobile-banner-categoria.jpg);
-                background-size: contain;
-                height: 475px;
-                background-position: bottom;
-                background-repeat: no-repeat;
-                "
-      >
-        <p
-          class="txt-small thin"
-          style="text-align: start; margin: 0 0 0 5vw; color: #FFF; font-size: 1rem;"
-        >
-          Equipa tu Hogar con los Mejores
-        </p>
-        <p
-          class="txt-medium"
-          style="
-                margin: 0 0 0 5vw; color: #FFF; text-align: start; font-size: 1.75rem; font-weight: 600;"
-        >
-          ELECTRODOMÉSTICOS
-        </p>
-        <p
-          class="txt-small thin"
-          style="text-align: start; margin: 0 0 0 5vw; color: #FFF; font-size: 1rem"
-        >
-          Heladeras, Lavarropas, Televisores, Pequeños Electrodomésticos y Mucho
-          Mas! Aprovecha nuestras promociones y descuentos!
-        </p>
-      </div>
+      <div style="width: 100%; margin-top: 78px;"></div>
     </div>
 
     <div id="left-column" class="col-xs-12 col-sm-4 col-md-3">

@@ -6,12 +6,34 @@ import {
 } from "../../../lib/prestashop";
 import { getImageUrl } from "../../../lib/utils";
 
-const category = await getCategoryById(19);
+const category = await getCategoryById(2);
 
+if (!category?.associations?.categories) {
+  console.error("No se pudo cargar la categoría 2 para /venta/productos.");
+  return [];
+}
+
+// No mutamos el objeto original: construimos una lista de subcategorías enriquecida
 delete category.associations.products;
+const rawSubcategories = category.associations?.categories || [];
+const categoriesList = [];
+for (const sc of rawSubcategories) {
+  const subcatId = Number(sc?.id ?? sc);
+  if (!subcatId) continue;
 
-// Fase 1: cargar productos reales de la categoría 19 y normalizar view model
-const rawProducts = await getProductsByCategory(19, { activeOnly: true });
+  const c = await getCategoryById(subcatId);
+  if (!c) continue;
+  const active = c?.active === "1" || c?.active === 1 || c?.active === true;
+  if (!active) continue;
+
+  const name = typeof c.name === "object" ? Object.values(c.name)[0] ?? "" : c.name ?? "";
+  const link = `./${c.link_rewrite}/`;
+
+  categoriesList.push({ id: Number(c.id), name, link });
+}
+
+// Fase 1: cargar productos reales de la categoría 2 y normalizar view model
+const rawProducts = await getProductsByCategory(2, { activeOnly: true });
 
 function parsePrice(raw: any) {
   if (raw === null || raw === undefined) return 0;
@@ -58,8 +80,10 @@ const productsView = (rawProducts || []).map((p, idx) => {
     p?.link ||
     p?.url ||
     (id
-      ? `https://tecnolobbyx.com/tienda/electrodomesticos/${id}-${(p?.link_rewrite || "").toString()}.html`
+      ? `https://tecnolobbyx.com/tienda/${id}-${(p?.link_rewrite || "").toString()}.html`
       : "#");
+
+  const categories = (p?.associations?.categories || []).map((c) => Number(c?.id ?? c)).filter(Boolean);
 
   return {
     id,
@@ -70,6 +94,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     image,
     relevance: idx,
     active: p?.active === "1" || p?.active === 1 || p?.active === true,
+    categories,
   };
 });
 
@@ -86,6 +111,16 @@ const _fmtCurrency = new Intl.NumberFormat("es-AR", {
 const priceMinFormatted = priceMin ? _fmtCurrency.format(priceMin) : "$0";
 const priceMaxFormatted = priceMax ? _fmtCurrency.format(priceMax) : "$0";
 
+// Fase 1 - Subcategorías: calcular conteos por subcategoría usando productsView
+const subcategoryCounts = {};
+for (const prod of productsView) {
+  for (const cid of prod.categories || []) {
+    const id = Number(cid);
+    if (!id) continue;
+    subcategoryCounts[id] = (subcategoryCounts[id] || 0) + 1;
+  }
+}
+
 // Extraer variables del objeto category
 const name = category.name;
 const meta_description = category.meta_description;
@@ -101,85 +136,13 @@ const whatsappUrl =
 >
   <div class="container">
     <div id="js-product-list-header">
-      <div
-        class="imagen-portada cat-Electrodomesticos"
-        style="display: flex; align-items: center;"
-      >
-        <img
-          src="https://tecnolobbyx.com/tienda/img/categoria/Electrodomesticos.png"
-          alt="Descripción de la imagen"
-        />
-        <div class="texto-portada" style="width: 40%;">
-          <p
-            class="txt-medium thin"
-            style="font-size: 24px; padding-bottom: 2rem;"
-          >
-            Equipa tu Hogar con los Mejores
-          </p>
-          <p
-            class="txt-medium negrita"
-            style="   font-size: 64px;
-                                                    line-height: 75px;
-                                                    border-left: 4px solid;
-                                                    padding-left: 15px;
-                                                    border-image: linear-gradient(
-                                                    to bottom,
-                                                    #000000 0%,
-                                                    #9747FF 27%,
-                                                    #00D9FF 37%,
-                                                    #07E1FF 66%,
-                                                    #9F2EFF 77%,
-                                                    #FE02FF 83%,
-                                                    #FD02FF 99%) 1;"
-          >
-            Electrodomesticos
-          </p>
-          <br />
-          <p class="txt-medium thin" style="font-size: 24px;width: 50%;">
-            Heladeras, Lavarropas, Televisores, Pequeños Electrodomésticos y
-            Mucho Mas! Aprovecha nuestras promociones y descuentos!
-          </p>
-        </div>
-      </div>
-      <div
-        class="container-mobile"
-        style="
-                background-color: #333333;
-                padding-top: 100px;
-                background-image: url(https://tecnolobbyx.com/tienda/img/categoria/electro-mobile-banner-categoria.jpg);
-                background-size: contain;
-                height: 475px;
-                background-position: bottom;
-                background-repeat: no-repeat;
-                "
-      >
-        <p
-          class="txt-small thin"
-          style="text-align: start; margin: 0 0 0 5vw; color: #FFF; font-size: 1rem;"
-        >
-          Equipa tu Hogar con los Mejores
-        </p>
-        <p
-          class="txt-medium"
-          style="
-                margin: 0 0 0 5vw; color: #FFF; text-align: start; font-size: 1.75rem; font-weight: 600;"
-        >
-          ELECTRODOMÉSTICOS
-        </p>
-        <p
-          class="txt-small thin"
-          style="text-align: start; margin: 0 0 0 5vw; color: #FFF; font-size: 1rem"
-        >
-          Heladeras, Lavarropas, Televisores, Pequeños Electrodomésticos y Mucho
-          Mas! Aprovecha nuestras promociones y descuentos!
-        </p>
-      </div>
+      <div style="width: 100%; margin-top: 78px;"></div>
     </div>
 
     <div id="left-column" class="col-xs-12 col-sm-4 col-md-3">
       <div id="search_filters_wrapper" class="hidden-sm-down">
         <div id="search_filters" style="margin: 0;">
-          <p class="text-uppercase h6">Filtrar por V</p>
+          <p class="text-uppercase h6">Filtrar por</p>
 
           <section class="facet" data-type="price">
             <p class="h6 facet-title">Precio</p>
@@ -196,6 +159,23 @@ const whatsappUrl =
                 {priceMinFormatted} - {priceMaxFormatted}
               </p>
             </div>
+          </section>
+          <section class="facet" data-type="category">
+            <p class="h6 facet-title hidden-sm-down">Categorías</p>
+            <ul id="facet_66263" class="collapse">
+              {
+                categoriesList.map((cat, idx) => (
+                  <li>
+                    <label class="facet-label" for={`facet_input_66263_${idx}`}>
+                      <a href={cat.link} class="_gray-darker search-link js-search-link" rel="nofollow">
+                        {cat.name}
+                        <span class="magnitude">({subcategoryCounts[cat.id] || 0})</span>
+                      </a>
+                    </label>
+                  </li>
+                ))
+              }
+            </ul>
           </section>
         </div>
       </div>

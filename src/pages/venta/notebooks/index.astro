@@ -49,8 +49,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
 
   // image
   let image = null;
-  const imgs = p?.associations?.images || [];
-  const imgId = imgs?.[0]?.id ?? imgs?.[0] ?? p?.id_default_image ?? null;
+  const imgId = p?.id_default_image ?? null;
   if (imgId && id) {
     image = getImageUrl(id, imgId);
   }
