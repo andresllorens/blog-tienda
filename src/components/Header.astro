@@ -30,22 +30,13 @@ const { whatsappUrl } = Astro.props;
               <a class="no-logo" style="cursor: pointer;">Categorias</a>
             </li>
             <li>
-              <a
-                href="/venta/marcas-celulares"
-                class="no-logo">Celulares</a
-              >
+              <a href="/venta/marcas-celulares" class="no-logo">Celulares</a>
             </li>
             <li>
-              <a
-                href="/venta/smartwatch"
-                class="no-logo">Smartwatch</a
-              >
+              <a href="/venta/smartwatch" class="no-logo">Smartwatch</a>
             </li>
             <li>
-              <a
-                href="/venta/auriculares"
-                class="no-logo">Auriculares</a
-              >
+              <a href="/venta/auriculares" class="no-logo">Auriculares</a>
             </li>
           </ul>
           <a
@@ -53,8 +44,7 @@ const { whatsappUrl } = Astro.props;
             id="wpp-header-btn"
             class="cont-boton-wpp"
             target="_blank"
-            onclick={`return trackHeaderWppClick('${whatsappUrl}');`}
-          ></a>
+            onclick={`return trackHeaderWppClick('${whatsappUrl}');`}></a>
           <script is:inline>
             function trackHeaderWppClick(url) {
               let opened = false;
@@ -110,66 +100,48 @@ const { whatsappUrl } = Astro.props;
     <div class="block-categories">
       <ul class="category-top-menu">
         <li>
-          <a
-            class="text-uppercase h6"
-            href="/venta/productos">Tienda</a
-          >
+          <a class="text-uppercase h6" href="/venta/productos">Tienda</a>
         </li>
         <li>
           <ul class="category-sub-menu">
             <li data-depth="0">
               <div>
-                <a href="/venta/accesorios"
-                  >Accesorios</a
-                >
+                <a href="/venta/accesorios">Accesorios</a>
               </div>
             </li>
             <li data-depth="0">
               <div>
-                <a href="/venta/auriculares"
-                  >Auriculares</a
-                >
+                <a href="/venta/auriculares">Auriculares</a>
               </div>
             </li>
             <li data-depth="0">
               <div>
-                <a href="/venta/celulares"
-                  >Celulares</a
-                >
+                <a href="/venta/celulares">Celulares</a>
               </div>
             </li>
             <li data-depth="0">
               <div>
-                <a href="/venta/consolas">Consolas</a
-                >
+                <a href="/venta/consolas">Consolas</a>
               </div>
             </li>
             <li data-depth="0">
               <div>
-                <a href="/venta/electrodomesticos"
-                  >Electrodomesticos</a
-                >
+                <a href="/venta/electrodomesticos">Electrodomesticos</a>
               </div>
             </li>
             <li data-depth="0">
               <div>
-                <a href="/venta/notebooks"
-                  >Notebooks</a
-                >
+                <a href="/venta/notebooks">Notebooks</a>
               </div>
             </li>
             <li data-depth="0">
               <div>
-                <a href="/venta/parlantes"
-                  >Parlantes</a
-                >
+                <a href="/venta/parlantes">Parlantes</a>
               </div>
             </li>
             <li data-depth="0">
               <div>
-                <a href="/venta/smartwatch"
-                  >Smartwatch</a
-                >
+                <a href="/venta/smartwatch">Smartwatch</a>
               </div>
             </li>
             <li data-depth="0">
@@ -187,13 +159,14 @@ const { whatsappUrl } = Astro.props;
     document.addEventListener("DOMContentLoaded", () => {
       const categoriasBtn = document.getElementById("categorias-btn");
       const arbolCat = document.querySelector("#arbol-cat .block-categories");
-
+      const desktopNav = document.querySelector("#desktop-nav");
+      
       categoriasBtn.addEventListener("click", (event) => {
         event.stopPropagation(); // Evita que el clic se propague hacia el documento
         arbolCat.classList.toggle("active"); // Agrega o quita la clase active
         categoriasBtn.classList.toggle("active"); // Agrega o quita la clase active
       });
-
+      
       // Detecta clics fuera del elemento #arbol-cat .block-categories
       document.addEventListener("click", (event) => {
         if (
@@ -203,6 +176,13 @@ const { whatsappUrl } = Astro.props;
           arbolCat.classList.remove("active");
           categoriasBtn.classList.remove("active");
         }
+      });
+      
+      const menuIconContainer = document.querySelector("#menu-icon-container");
+
+      menuIconContainer.addEventListener("click", () => {
+        desktopNav.classList.toggle("active");
+        menuIconContainer.classList.toggle("active");
       });
     });
   </script>
