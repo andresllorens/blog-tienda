@@ -1,7 +1,6 @@
 ---
 import {
-  getProducts,
-  getProductById,
+  getProductsByCategory,
   getProductFeature,
   getProductFeatureValue,
 } from "../../../lib/prestashop";
@@ -11,34 +10,16 @@ import { getImageUrl } from "../../../lib/utils";
 import { Image } from "astro:assets";
 
 export async function getStaticPaths() {
-  const products = await getProducts();
-
-  // Filtramos candidatos: activos, categoría por defecto 20 y con slug
-  const candidates = (products || []).filter(
-    (p) => p && (p.active === "1" || p.active === 1) && String(p.id_category_default) === "20" && p.link_rewrite,
-  );
-
-  const seen = new Set();
-  const paths = [];
-
-  // Para asegurar que cada página reciba los datos completos, solicitamos
-  // el producto por ID y usamos ese objeto en `props`.
-  for (const p of candidates) {
-    try {
-      const full = await getProductById(p.id);
-      if (!full) continue;
-
-      const slug = String(full.link_rewrite || p.link_rewrite || "").trim();
-      if (!slug || seen.has(slug)) continue;
-      seen.add(slug);
-
-      paths.push({ params: { name: slug }, props: { product: full } });
-    } catch (e) {
-      console.error(`Error procesando producto ID ${p?.id}:`, e);
-    }
+  try {
+    const candidates = await getProductsByCategory(20);
+    return candidates.map((product) => ({
+      params: { name: product.link_rewrite },
+      props: { product },
+    }));
+  } catch (error) {
+    console.error("Error trayendo productos por categoría:", error);
+    return [];
   }
-
-  return paths;
 }
 
 // Funcioines auxiliares

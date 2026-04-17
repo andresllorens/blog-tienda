@@ -8,26 +8,9 @@ import { getImageUrl } from "../../../lib/utils";
 
 const category = await getCategoryById(20);
 
-if (!category?.associations?.categories) {
+if (!category) {
   console.error("No se pudo cargar la categoría 20 para /venta/smartwatch.");
   return [];
-}
-
-delete category.associations.products;
-
-const categories = category.associations.categories || [];
-
-category.associations.categories = [];
-
-for (const cat of categories) {
-  if (!cat?.id) {
-    continue;
-  }
-
-  const c = await getCategoryById(cat.id);
-  if (c?.active === "1") {
-    category.associations.categories.push(c);
-  }
 }
 
 // Fase 1: cargar productos reales de la categoría 20 y normalizar view model
@@ -78,12 +61,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     .map((c) => Number(c?.id ?? c))
     .filter(Boolean);
 
-  const url =
-    p?.link ||
-    p?.url ||
-    (id
-      ? `https://tecnolobbyx.com/tienda/smartwatch/${id}-${(p?.link_rewrite || "").toString()}.html`
-      : "#");
+  const url = `/venta/smartwatch/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,
@@ -242,29 +220,45 @@ const whatsappUrl =
       class="js-content-wrapper left-column col-xs-12 col-sm-8 col-md-9"
     >
       <section id="main">
-
         <section id="products">
           <div id="js-product-list-top" class="row products-selection">
             <div class="col-md-6 hidden-sm-down total-products">
-              <p>Hay {productsView.length} {productsView.length === 1 ? 'producto' : 'productos'}.</p>
+              <p>
+                Hay {productsView.length}
+                {productsView.length === 1 ? "producto" : "productos"}.
+              </p>
             </div>
             <div class="col-md-6">
               <div class="row sort-by-row">
-                <span class="col-sm-3 col-md-3 hidden-sm-down sort-by">Ordenar por:</span>
+                <span class="col-sm-3 col-md-3 hidden-sm-down sort-by"
+                  >Ordenar por:</span
+                >
                 <div class="col-sm-9 col-xs-12 col-md-9 products-sort-order">
-                  <label for="products-sort-select" class="sr-only">Ordenar por</label>
-                  <select id="products-sort-select" class="products-sort-select" aria-label="Ordenar por" style="width: 100%;">
+                  <label for="products-sort-select" class="sr-only"
+                    >Ordenar por</label
+                  >
+                  <select
+                    id="products-sort-select"
+                    class="products-sort-select"
+                    aria-label="Ordenar por"
+                    style="width: 100%;"
+                  >
                     <option value="relevance">Relevancia</option>
                     <option value="name-asc">Nombre, A a Z</option>
                     <option value="name-desc">Nombre, Z a A</option>
-                    <option value="price-asc">Precio: de más bajo a más alto</option>
-                    <option value="price-desc">Precio, de más alto a más bajo</option>
+                    <option value="price-asc"
+                      >Precio: de más bajo a más alto</option
+                    >
+                    <option value="price-desc"
+                      >Precio, de más alto a más bajo</option
+                    >
                   </select>
                 </div>
               </div>
             </div>
             <div class="col-sm-12 hidden-md-up text-sm-center showing">
-              Mostrando 1-{productsView.length} de {productsView.length} {productsView.length === 1 ? 'artículo' : 'artículos'}
+              Mostrando 1-{productsView.length} de {productsView.length}
+              {productsView.length === 1 ? "artículo" : "artículos"}
             </div>
           </div>
 
@@ -319,6 +313,13 @@ const whatsappUrl =
                 ))
               }
             </div>
+            <nav class="mt-4">
+              <ul
+                id="pagination-container"
+                class="pagination justify-content-center"
+              >
+              </ul>
+            </nav>
           </div>
         </section>
       </section>
@@ -331,7 +332,6 @@ const whatsappUrl =
     function initSlider() {
       const slider = document.getElementById("price-slider");
       const label = document.getElementById("price-label");
-      const products = Array.from(document.querySelectorAll(".js-product"));
 
       if (!slider) return;
 
@@ -383,59 +383,70 @@ const whatsappUrl =
           label.textContent = `${formatCurrency.format(currentMin)} - ${formatCurrency.format(currentMax)}`;
         }
 
-        // Filtrar productos por precio
-        products.forEach((product) => {
+        // 1. En lugar de cambiar el display acá, filtramos la lista global
+        filteredProducts = allProductsElements.filter((product) => {
           const price = parseFloat(product.dataset.price);
-          if (!Number.isFinite(price)) return;
-          product.style.display =
-            price >= currentMin && price <= currentMax ? "block" : "none";
+          if (!Number.isFinite(price)) return false;
+          return price >= currentMin && price <= currentMax;
         });
+
+        // 2. Cada vez que el filtro cambia, volvemos a la página 1
+        currentPage = 1;
+
+        // 3. Llamamos a nuestra nueva función que se encarga de mostrar los 15 (o 3) que correspondan
+        updateUI();
       });
     }
 
     function initFilterToggle() {
-      const toggle = document.querySelector('#search_filters .text-uppercase.h6');
+      const toggle = document.querySelector(
+        "#search_filters .text-uppercase.h6",
+      );
       if (!toggle) return;
 
-      const priceSection = document.querySelector('section.facet[data-type="price"]');
-      const categorySection = document.querySelector('section.facet[data-type="category"]');
+      const priceSection = document.querySelector(
+        'section.facet[data-type="price"]',
+      );
+      const categorySection = document.querySelector(
+        'section.facet[data-type="category"]',
+      );
       const sections = [priceSection, categorySection].filter(Boolean);
       if (!sections.length) return;
 
-      toggle.style.cursor = 'pointer';
+      toggle.style.cursor = "pointer";
 
       function updateText(open) {
-        toggle.textContent = open ? 'Filtrar por Ʌ' : 'Filtrar por';
+        toggle.textContent = open ? "Filtrar por Ʌ" : "Filtrar por";
       }
 
       function applyState(open) {
         sections.forEach((s) => {
           if (!s) return;
-          s.style.display = open ? '' : 'none';
+          s.style.display = open ? "" : "none";
         });
         updateText(open);
-        toggle.dataset.open = open ? 'true' : 'false';
+        toggle.dataset.open = open ? "true" : "false";
       }
 
       // Behavior: on large screens (>=768px) filters must always be visible
       function refreshBehaviour() {
-        const isLarge = window.matchMedia('(min-width: 768px)').matches;
+        const isLarge = window.matchMedia("(min-width: 768px)").matches;
 
         if (isLarge) {
           applyState(true);
           // disable toggling on large screens
           toggle.onclick = null;
-          toggle.style.pointerEvents = 'none';
-          toggle.style.opacity = '1';
+          toggle.style.pointerEvents = "none";
+          toggle.style.opacity = "1";
         } else {
           // enable toggling on small screens
-          toggle.style.pointerEvents = '';
-          toggle.style.opacity = '';
+          toggle.style.pointerEvents = "";
+          toggle.style.opacity = "";
           // default closed on small screens
           const initiallyOpen = false;
           applyState(initiallyOpen);
           toggle.onclick = function () {
-            const isOpen = toggle.dataset.open === 'true';
+            const isOpen = toggle.dataset.open === "true";
             applyState(!isOpen);
           };
         }
@@ -443,7 +454,7 @@ const whatsappUrl =
 
       // initialize and keep in sync on resize
       refreshBehaviour();
-      window.addEventListener('resize', function () {
+      window.addEventListener("resize", function () {
         // debounce-like (simple)
         clearTimeout(window.__filterToggleResizeTimer);
         window.__filterToggleResizeTimer = setTimeout(refreshBehaviour, 120);
@@ -454,18 +465,22 @@ const whatsappUrl =
     function getOrderFromQuery() {
       try {
         const qp = new URLSearchParams(window.location.search);
-        const order = qp.get('order') || '';
+        const order = qp.get("order") || "";
         switch (order) {
-          case 'product.name.asc': return 'name-asc';
-          case 'product.name.desc': return 'name-desc';
-          case 'product.price.asc': return 'price-asc';
-          case 'product.price.desc': return 'price-desc';
-          case 'product.position.asc':
+          case "product.name.asc":
+            return "name-asc";
+          case "product.name.desc":
+            return "name-desc";
+          case "product.price.asc":
+            return "price-asc";
+          case "product.price.desc":
+            return "price-desc";
+          case "product.position.asc":
           default:
-            return 'relevance';
+            return "relevance";
         }
       } catch (e) {
-        return 'relevance';
+        return "relevance";
       }
     }
 
@@ -473,39 +488,46 @@ const whatsappUrl =
       try {
         const qp = new URLSearchParams(window.location.search);
         const map = {
-          'relevance': 'product.position.asc',
-          'name-asc': 'product.name.asc',
-          'name-desc': 'product.name.desc',
-          'price-asc': 'product.price.asc',
-          'price-desc': 'product.price.desc',
+          relevance: "product.position.asc",
+          "name-asc": "product.name.asc",
+          "name-desc": "product.name.desc",
+          "price-asc": "product.price.asc",
+          "price-desc": "product.price.desc",
         };
-        qp.set('order', map[val] || 'product.position.asc');
+        qp.set("order", map[val] || "product.position.asc");
         const url = `${window.location.pathname}?${qp.toString()}`;
-        window.history.replaceState({}, '', url);
+        window.history.replaceState({}, "", url);
       } catch (e) {
         // ignore
       }
     }
 
     function sortProducts(criteria) {
-      const container = document.querySelector('#js-product-list .products');
+      const container = document.querySelector("#js-product-list .products");
       if (!container) return;
-      const items = Array.from(container.querySelectorAll('.js-product'));
+      const items = Array.from(container.querySelectorAll(".js-product"));
 
-      const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
+      const collator = new Intl.Collator("es", {
+        sensitivity: "base",
+        numeric: true,
+      });
 
       items.sort((a, b) => {
-        if (criteria === 'name-asc' || criteria === 'name-desc') {
-          const an = (a.querySelector('.product-title a')?.textContent || '').trim();
-          const bn = (b.querySelector('.product-title a')?.textContent || '').trim();
+        if (criteria === "name-asc" || criteria === "name-desc") {
+          const an = (
+            a.querySelector(".product-title a")?.textContent || ""
+          ).trim();
+          const bn = (
+            b.querySelector(".product-title a")?.textContent || ""
+          ).trim();
           const cmp = collator.compare(an, bn);
-          return criteria === 'name-asc' ? cmp : -cmp;
+          return criteria === "name-asc" ? cmp : -cmp;
         }
 
-        if (criteria === 'price-asc' || criteria === 'price-desc') {
+        if (criteria === "price-asc" || criteria === "price-desc") {
           const ap = Number(a.dataset.price) || 0;
           const bp = Number(b.dataset.price) || 0;
-          return criteria === 'price-asc' ? ap - bp : bp - ap;
+          return criteria === "price-asc" ? ap - bp : bp - ap;
         }
 
         // relevance (default) - use numeric data-relevance
@@ -516,29 +538,159 @@ const whatsappUrl =
 
       // Re-append in sorted order
       for (const it of items) container.appendChild(it);
+
+      const slider = document.getElementById("price-slider");
+      const [min, max] = slider.noUiSlider.get().map(Number);
+
+      filteredProducts = items.filter((el) => {
+        const price = parseFloat(el.dataset.price);
+        return price >= min && price <= max;
+      });
+
+      currentPage = 1;
+      updateUI();
     }
 
     function initSorting() {
-      const select = document.getElementById('products-sort-select');
+      const select = document.getElementById("products-sort-select");
       if (!select) return;
       // set initial value from query
       const initial = getOrderFromQuery();
       select.value = initial;
       sortProducts(initial);
 
-      select.addEventListener('change', function () {
+      select.addEventListener("change", function () {
         const v = select.value;
         setOrderQuery(v);
         sortProducts(v);
       });
     }
 
+    // 1. Configuraciones base
+    const ITEMS_PER_PAGE = 12;
+    let currentPage = 1;
+    const productsSection = document.getElementById("products");
+
+    // 2. Guardamos todos los productos en un Array desde el principio.
+    // Usamos Array.from para convertir el NodeList en un Array real de JS y poder manipularlo fácil.
+    const allProductsElements = Array.from(
+      document.querySelectorAll(".js-product"),
+    );
+
+    // 3. Esta variable va a tener los productos "activos" (los que cumplen los filtros).
+    // Al cargar la página por primera vez, son todos.
+    let filteredProducts = [...allProductsElements];
+
+    function renderPage(page) {
+      // 1. Calculamos los índices matemáticos
+      const startIndex = (page - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+
+      // 2. Primero, por las dudas, ocultamos ABSOLUTAMENTE TODOS los productos en el DOM
+      allProductsElements.forEach((el) => (el.style.display = "none"));
+
+      // 3. Agarramos solo nuestra lista de "productos válidos/filtrados"
+      // y mostramos los que caen dentro del rango de esta página
+      filteredProducts.forEach((el, index) => {
+        if (index >= startIndex && index < endIndex) {
+          el.style.display = "block";
+        }
+      });
+    }
+    function setupPagination() {
+      const paginationContainer = document.getElementById(
+        "pagination-container",
+      );
+      paginationContainer.innerHTML = ""; // Limpiamos el contenedor
+
+      const pageCount = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
+      // Si solo hay una página, no mostramos los controles
+      if (pageCount <= 1) return;
+
+      // --- Botón ANTERIOR ---
+      const prevLi = document.createElement("li");
+      prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+      prevLi.innerHTML = `<a class="page-link prev js-search-link" href="#">Anterior</a>`;
+      prevLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          currentPage--;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(prevLi);
+
+      // --- Botones NUMÉRICOS ---
+      for (let i = 1; i <= pageCount; i++) {
+        const li = document.createElement("li");
+        // Agregamos la clase 'active' o 'current' según tus estilos en theme.css
+        li.className = `page-item ${currentPage === i ? "active current" : ""}`;
+        li.innerHTML = `<a class="page-link js-search-link" href="#">${i}</a>`;
+
+        li.onclick = (e) => {
+          e.preventDefault();
+          currentPage = i;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        };
+        paginationContainer.appendChild(li);
+      }
+
+      // --- Botón SIGUIENTE ---
+      const nextLi = document.createElement("li");
+      nextLi.className = `page-item ${currentPage === pageCount ? "disabled" : ""}`;
+      nextLi.innerHTML = `<a class="page-link next js-search-link" href="#">Siguiente</a>`;
+      nextLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage < pageCount) {
+          currentPage++;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(nextLi);
+    }
+
+    function updateUI() {
+      renderPage(currentPage);
+      setupPagination();
+    }
+
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", function () { initSlider(); initFilterToggle(); initSorting(); });
+      document.addEventListener("DOMContentLoaded", function () {
+        initSlider();
+        initFilterToggle();
+        initSorting();
+        updateUI();
+      });
     } else {
       initSlider();
       initFilterToggle();
       initSorting();
+      updateUI();
     }
   </script>
 
@@ -551,7 +703,7 @@ const whatsappUrl =
     }
     .products-sort-select {
       background: transparent;
-      border: 1px solid rgba(0,0,0,0.12);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       padding: 8px 12px;
       border-radius: 4px;
       font-size: 14px;
@@ -559,14 +711,23 @@ const whatsappUrl =
       appearance: none;
       -webkit-appearance: none;
       -moz-appearance: none;
-      background-image: linear-gradient(45deg, transparent 50%, #666 50%), linear-gradient(135deg, #666 50%, transparent 50%);
-      background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px);
-      background-size: 5px 5px, 5px 5px;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #666 50%),
+        linear-gradient(135deg, #666 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) calc(1em + 2px),
+        calc(100% - 13px) calc(1em + 2px);
+      background-size:
+        5px 5px,
+        5px 5px;
       background-repeat: no-repeat;
       cursor: pointer;
     }
     @media (max-width: 767px) {
-      .products-sort-order { justify-content: center; margin: 0.5rem 0; }
+      .products-sort-order {
+        justify-content: center;
+        margin: 0.5rem 0;
+      }
     }
     /* Fix: tarjetas de producto con altura uniforme */
     .products .js-product {
@@ -579,7 +740,7 @@ const whatsappUrl =
       overflow: hidden;
       background: #fff;
       border-radius: 6px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
     .thumbnail-container {
       display: flex;
@@ -609,8 +770,12 @@ const whatsappUrl =
       justify-content: space-between;
     }
     @media (max-width: 767px) {
-      .product-miniature { height: auto; }
-      .thumbnail-top { height: 200px; }
+      .product-miniature {
+        height: auto;
+      }
+      .thumbnail-top {
+        height: 200px;
+      }
     }
     :global(.noUi-connect) {
       background: #2fb5d2; /* El color cyan de PrestaShop o el de tu marca */
@@ -635,8 +800,6 @@ const whatsappUrl =
         margin: 10px 0;
         width: 100%;
       }
-
-      
     }
   </style>
 </LayoutListado>
