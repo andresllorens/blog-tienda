@@ -1,14 +1,19 @@
 ---
 import LayoutListado from "../../../layouts/LayoutListado.astro";
-import { getCategoryById, getProductsByCategory } from "../../../lib/prestashop";
+import {
+  getCategoryById,
+  getProductsByCategory,
+} from "../../../lib/prestashop";
 import { getImageUrl } from "../../../lib/utils";
-import { Image } from "astro:assets";
 
 export async function getStaticPaths() {
   const parentCategory = await getCategoryById(18);
+  const rawProducts = await getProductsByCategory(18, { activeOnly: true });
 
   if (!parentCategory?.associations?.categories) {
-    console.error("No se pudo cargar la categoría madre 18 para /venta/[brand].");
+    console.error(
+      "No se pudo cargar la categoría madre 18 para /venta/[brand].",
+    );
     return [];
   }
 
@@ -21,7 +26,7 @@ export async function getStaticPaths() {
         const category = await getCategoryById(cat.id);
         if (!category) return null;
         // fetch products for this child category (active only)
-        const products = await getProductsByCategory(cat.id, { activeOnly: true });
+        const products = await getProductsByCategory(cat.id);
         return { category, products };
       } catch (e) {
         console.error(`Error buscando categoría ${cat.id}:`, e);
@@ -30,8 +35,29 @@ export async function getStaticPaths() {
     }),
   );
 
+  childrenCategories.forEach((child) => {
+    if (!child || !child.category || !child.category.id) return;
+    const catId = child.category.id;
+    // asignar productos que tengan esta categoría como id_category_default
+    child.products = rawProducts.filter(
+      (p) =>
+        p.active === "1" &&
+        ((p.id_category_default && Number(p.id_category_default) === catId) ||
+          (p.associations.categories &&
+            p.associations.categories.some(
+              (c: any) => Number(c.id) === catId,
+            ))),
+    );
+  });
+
   return childrenCategories
-    .filter((c) => c !== null && c.category && c.category.active === "1" && c.category.link_rewrite)
+    .filter(
+      (c) =>
+        c !== null &&
+        c.category &&
+        c.category.active === "1" &&
+        c.category.link_rewrite,
+    )
     .map(({ category, products }) => {
       return {
         params: {
@@ -88,12 +114,7 @@ const productsView = (products || []).map((p, idx) => {
     image = getImageUrl(id, imgId);
   }
 
-  const url =
-    p?.link ||
-    p?.url ||
-    (id
-      ? `https://tecnolobbyx.com/tienda/tablets/${id}-${(p?.link_rewrite || "").toString()}.html`
-      : "#");
+  const url = `/venta/celulares/${category.link_rewrite}/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,
@@ -126,7 +147,6 @@ const meta_description = category.meta_description;
 
 const whatsappUrl =
   "https://api.whatsapp.com/send/?phone=543513473549&text=Hola+Lobbyx%21+Queria+consultarte+sobre...&type=phone_number&app_absent=0";
-
 ---
 
 <LayoutListado
@@ -262,6 +282,13 @@ const whatsappUrl =
                 ))
               }
             </div>
+            <nav class="mt-4">
+              <ul
+                id="pagination-container"
+                class="pagination justify-content-center"
+              >
+              </ul>
+            </nav>
           </div>
         </section>
       </section>
@@ -274,7 +301,6 @@ const whatsappUrl =
     function initSlider() {
       const slider = document.getElementById("price-slider");
       const label = document.getElementById("price-label");
-      const products = Array.from(document.querySelectorAll(".js-product"));
 
       if (!slider) return;
 
@@ -326,13 +352,18 @@ const whatsappUrl =
           label.textContent = `${formatCurrency.format(currentMin)} - ${formatCurrency.format(currentMax)}`;
         }
 
-        // Filtrar productos por precio
-        products.forEach((product) => {
+        // 1. En lugar de cambiar el display acá, filtramos la lista global
+        filteredProducts = allProductsElements.filter((product) => {
           const price = parseFloat(product.dataset.price);
-          if (!Number.isFinite(price)) return;
-          product.style.display =
-            price >= currentMin && price <= currentMax ? "block" : "none";
+          if (!Number.isFinite(price)) return false;
+          return price >= currentMin && price <= currentMax;
         });
+
+        // 2. Cada vez que el filtro cambia, volvemos a la página 1
+        currentPage = 1;
+
+        // 3. Llamamos a nuestra nueva función que se encarga de mostrar los 15 (o 3) que correspondan
+        updateUI();
       });
     }
 
@@ -476,6 +507,17 @@ const whatsappUrl =
 
       // Re-append in sorted order
       for (const it of items) container.appendChild(it);
+
+      const slider = document.getElementById("price-slider");
+      const [min, max] = slider.noUiSlider.get().map(Number);
+
+      filteredProducts = items.filter((el) => {
+        const price = parseFloat(el.dataset.price);
+        return price >= min && price <= max;
+      });
+
+      currentPage = 1;
+      updateUI();
     }
 
     function initSorting() {
@@ -493,16 +535,131 @@ const whatsappUrl =
       });
     }
 
+    // 1. Configuraciones base
+    const ITEMS_PER_PAGE = 12;
+    let currentPage = 1;
+    const productsSection = document.getElementById("products");
+
+    // 2. Guardamos todos los productos en un Array desde el principio.
+    // Usamos Array.from para convertir el NodeList en un Array real de JS y poder manipularlo fácil.
+    const allProductsElements = Array.from(
+      document.querySelectorAll(".js-product"),
+    );
+
+    // 3. Esta variable va a tener los productos "activos" (los que cumplen los filtros).
+    // Al cargar la página por primera vez, son todos.
+    let filteredProducts = [...allProductsElements];
+
+    function renderPage(page) {
+      // 1. Calculamos los índices matemáticos
+      const startIndex = (page - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+
+      // 2. Primero, por las dudas, ocultamos ABSOLUTAMENTE TODOS los productos en el DOM
+      allProductsElements.forEach((el) => (el.style.display = "none"));
+
+      // 3. Agarramos solo nuestra lista de "productos válidos/filtrados"
+      // y mostramos los que caen dentro del rango de esta página
+      filteredProducts.forEach((el, index) => {
+        if (index >= startIndex && index < endIndex) {
+          el.style.display = "block";
+        }
+      });
+    }
+    function setupPagination() {
+      const paginationContainer = document.getElementById(
+        "pagination-container",
+      );
+      paginationContainer.innerHTML = ""; // Limpiamos el contenedor
+
+      const pageCount = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
+      // Si solo hay una página, no mostramos los controles
+      if (pageCount <= 1) return;
+
+      // --- Botón ANTERIOR ---
+      const prevLi = document.createElement("li");
+      prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+      prevLi.innerHTML = `<a class="page-link prev js-search-link" href="#">Anterior</a>`;
+      prevLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          currentPage--;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(prevLi);
+
+      // --- Botones NUMÉRICOS ---
+      for (let i = 1; i <= pageCount; i++) {
+        const li = document.createElement("li");
+        // Agregamos la clase 'active' o 'current' según tus estilos en theme.css
+        li.className = `page-item ${currentPage === i ? "active current" : ""}`;
+        li.innerHTML = `<a class="page-link js-search-link" href="#">${i}</a>`;
+
+        li.onclick = (e) => {
+          e.preventDefault();
+          currentPage = i;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        };
+        paginationContainer.appendChild(li);
+      }
+
+      // --- Botón SIGUIENTE ---
+      const nextLi = document.createElement("li");
+      nextLi.className = `page-item ${currentPage === pageCount ? "disabled" : ""}`;
+      nextLi.innerHTML = `<a class="page-link next js-search-link" href="#">Siguiente</a>`;
+      nextLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage < pageCount) {
+          currentPage++;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(nextLi);
+    }
+
+    function updateUI() {
+      renderPage(currentPage);
+      setupPagination();
+    }
+
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", function () {
         initSlider();
         initFilterToggle();
         initSorting();
+        updateUI();
       });
     } else {
       initSlider();
       initFilterToggle();
       initSorting();
+      updateUI();
     }
   </script>
 

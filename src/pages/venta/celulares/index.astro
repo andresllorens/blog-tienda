@@ -8,7 +8,10 @@ import { getImageUrl } from "../../../lib/utils";
 
 const category = await getCategoryById(18);
 
-delete category.associations.products;
+if (!category?.associations?.categories) {
+  console.error("No se pudo cargar la categoría 18 para /venta/celulares.");
+  return [];
+}
 
 // Fase 1: cargar productos reales de la categoría 18 y normalizar view model
 const rawProducts = await getProductsByCategory(18, { activeOnly: true });
@@ -54,12 +57,27 @@ const productsView = (rawProducts || []).map((p, idx) => {
     image = getImageUrl(id, imgId);
   }
 
-  const url =
-    p?.link ||
-    p?.url ||
-    (id
-      ? `https://tecnolobbyx.com/tienda/celulares/${id}-${(p?.link_rewrite || "").toString()}.html`
-      : "#");
+  let brand = "otros";
+  if (p?.associations?.categories && Array.isArray(p.associations.categories)) {
+    const catIds = p.associations.categories.map((c) => Number(c.id));
+    // aquí asumimos que la categoría hija de celulares es 20, pero idealmente habría que verificar por nombre o similar
+    if (catIds.includes(55)) {
+      brand = "infinix";
+    } else if (catIds.includes(49)) {
+      brand = "iphone";
+    } else if (catIds.includes(63)) {
+      brand = "iphone-usados-seleccionados";
+    } else if (catIds.includes(48)) {
+      brand = "motorola";
+    } else if (catIds.includes(56)) {
+      brand = "realme";
+    } else if (catIds.includes(47)) {
+      brand = "samsung";
+    } else if (catIds.includes(25)) {
+      brand = "xiaomi";
+    }
+  }
+  const url = `/venta/celulares/${brand}/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,
@@ -165,6 +183,77 @@ const whatsappUrl =
               </p>
             </div>
           </section>
+          <section class="facet" data-type="category">
+            <p class="h6 facet-title hidden-sm-down">Categorías</p>
+            <ul id="facet_66263" class="collapse">
+              <li>
+                <label class="facet-label" for="infinix">
+                  <a
+                    href="/venta/celulares/infinix/"
+                    class="_gray-darker search-link js-search-link"
+                    rel="nofollow"
+                  >
+                    Infinix
+                  </a>
+                </label>
+              </li>
+              <li>
+                <label class="facet-label" for="iphone">
+                  <a
+                    href="/venta/celulares/iphone/"
+                    class="_gray-darker search-link js-search-link"
+                    rel="nofollow"
+                  >
+                    iPhone
+                  </a>
+                </label>
+              </li>
+              <li>
+                <label class="facet-label" for="iphone-usados-seleccionados">
+                  <a
+                    href="/venta/celulares/iphone-usados-seleccionados/"
+                    class="_gray-darker search-link js-search-link"
+                    rel="nofollow"
+                  >
+                    iPhone Usados Seleccionados
+                  </a>
+                </label>
+              </li>
+              <li>
+                <label class="facet-label" for="motorola">
+                  <a
+                    href="/venta/celulares/motorola/"
+                    class="_gray-darker search-link js-search-link"
+                    rel="nofollow"
+                  >
+                    Motorola
+                  </a>
+                </label>
+              </li>
+              <li>
+                <label class="facet-label" for="samsung">
+                  <a
+                    href="/venta/celulares/samsung/"
+                    class="_gray-darker search-link js-search-link"
+                    rel="nofollow"
+                  >
+                    Samsung
+                  </a>
+                </label>
+              </li>
+              <li>
+                <label class="facet-label" for="xiaomi">
+                  <a
+                    href="/venta/celulares/xiaomi/"
+                    class="_gray-darker search-link js-search-link"
+                    rel="nofollow"
+                  >
+                    Xiaomi
+                  </a>
+                </label>
+              </li>
+            </ul>
+          </section>
         </div>
       </div>
     </div>
@@ -267,6 +356,13 @@ const whatsappUrl =
                 ))
               }
             </div>
+            <nav class="mt-4">
+              <ul
+                id="pagination-container"
+                class="pagination justify-content-center"
+              >
+              </ul>
+            </nav>
           </div>
         </section>
       </section>
@@ -279,7 +375,6 @@ const whatsappUrl =
     function initSlider() {
       const slider = document.getElementById("price-slider");
       const label = document.getElementById("price-label");
-      const products = Array.from(document.querySelectorAll(".js-product"));
 
       if (!slider) return;
 
@@ -331,13 +426,18 @@ const whatsappUrl =
           label.textContent = `${formatCurrency.format(currentMin)} - ${formatCurrency.format(currentMax)}`;
         }
 
-        // Filtrar productos por precio
-        products.forEach((product) => {
+        // 1. En lugar de cambiar el display acá, filtramos la lista global
+        filteredProducts = allProductsElements.filter((product) => {
           const price = parseFloat(product.dataset.price);
-          if (!Number.isFinite(price)) return;
-          product.style.display =
-            price >= currentMin && price <= currentMax ? "block" : "none";
+          if (!Number.isFinite(price)) return false;
+          return price >= currentMin && price <= currentMax;
         });
+
+        // 2. Cada vez que el filtro cambia, volvemos a la página 1
+        currentPage = 1;
+
+        // 3. Llamamos a nuestra nueva función que se encarga de mostrar los 15 (o 3) que correspondan
+        updateUI();
       });
     }
 
@@ -481,6 +581,17 @@ const whatsappUrl =
 
       // Re-append in sorted order
       for (const it of items) container.appendChild(it);
+
+      const slider = document.getElementById("price-slider");
+      const [min, max] = slider.noUiSlider.get().map(Number);
+
+      filteredProducts = items.filter((el) => {
+        const price = parseFloat(el.dataset.price);
+        return price >= min && price <= max;
+      });
+
+      currentPage = 1;
+      updateUI();
     }
 
     function initSorting() {
@@ -498,16 +609,131 @@ const whatsappUrl =
       });
     }
 
+    // 1. Configuraciones base
+    const ITEMS_PER_PAGE = 12;
+    let currentPage = 1;
+    const productsSection = document.getElementById("products");
+
+    // 2. Guardamos todos los productos en un Array desde el principio.
+    // Usamos Array.from para convertir el NodeList en un Array real de JS y poder manipularlo fácil.
+    const allProductsElements = Array.from(
+      document.querySelectorAll(".js-product"),
+    );
+
+    // 3. Esta variable va a tener los productos "activos" (los que cumplen los filtros).
+    // Al cargar la página por primera vez, son todos.
+    let filteredProducts = [...allProductsElements];
+
+    function renderPage(page) {
+      // 1. Calculamos los índices matemáticos
+      const startIndex = (page - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+
+      // 2. Primero, por las dudas, ocultamos ABSOLUTAMENTE TODOS los productos en el DOM
+      allProductsElements.forEach((el) => (el.style.display = "none"));
+
+      // 3. Agarramos solo nuestra lista de "productos válidos/filtrados"
+      // y mostramos los que caen dentro del rango de esta página
+      filteredProducts.forEach((el, index) => {
+        if (index >= startIndex && index < endIndex) {
+          el.style.display = "block";
+        }
+      });
+    }
+    function setupPagination() {
+      const paginationContainer = document.getElementById(
+        "pagination-container",
+      );
+      paginationContainer.innerHTML = ""; // Limpiamos el contenedor
+
+      const pageCount = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
+      // Si solo hay una página, no mostramos los controles
+      if (pageCount <= 1) return;
+
+      // --- Botón ANTERIOR ---
+      const prevLi = document.createElement("li");
+      prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+      prevLi.innerHTML = `<a class="page-link prev js-search-link" href="#">Anterior</a>`;
+      prevLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          currentPage--;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(prevLi);
+
+      // --- Botones NUMÉRICOS ---
+      for (let i = 1; i <= pageCount; i++) {
+        const li = document.createElement("li");
+        // Agregamos la clase 'active' o 'current' según tus estilos en theme.css
+        li.className = `page-item ${currentPage === i ? "active current" : ""}`;
+        li.innerHTML = `<a class="page-link js-search-link" href="#">${i}</a>`;
+
+        li.onclick = (e) => {
+          e.preventDefault();
+          currentPage = i;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        };
+        paginationContainer.appendChild(li);
+      }
+
+      // --- Botón SIGUIENTE ---
+      const nextLi = document.createElement("li");
+      nextLi.className = `page-item ${currentPage === pageCount ? "disabled" : ""}`;
+      nextLi.innerHTML = `<a class="page-link next js-search-link" href="#">Siguiente</a>`;
+      nextLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage < pageCount) {
+          currentPage++;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(nextLi);
+    }
+
+    function updateUI() {
+      renderPage(currentPage);
+      setupPagination();
+    }
+
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", function () {
         initSlider();
         initFilterToggle();
         initSorting();
+        updateUI();
       });
     } else {
       initSlider();
       initFilterToggle();
       initSorting();
+      updateUI();
     }
   </script>
 
