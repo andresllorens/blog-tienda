@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 
 (async () => {
-  const url = process.env.URL || 'http://localhost:4322/venta/smartwatch/';
+  const url = process.env.URL || 'http://localhost:4322/smartwatch/';
   console.log('Opening', url);
 
   const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });

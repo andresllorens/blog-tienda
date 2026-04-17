@@ -9,7 +9,7 @@ import { getImageUrl } from "../../../lib/utils";
 const category = await getCategoryById(20);
 
 if (!category) {
-  console.error("No se pudo cargar la categoría 20 para /venta/smartwatch.");
+  console.error("No se pudo cargar la categoría 20 para /smartwatch.");
   return [];
 }
 
@@ -61,7 +61,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     .map((c) => Number(c?.id ?? c))
     .filter(Boolean);
 
-  const url = `/venta/smartwatch/${(p?.link_rewrite || "").toString()}/`;
+  const url = `/smartwatch/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,

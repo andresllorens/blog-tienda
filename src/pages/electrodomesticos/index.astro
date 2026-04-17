@@ -10,7 +10,7 @@ const category = await getCategoryById(19);
 
 if (!category?.associations?.categories) {
   console.error(
-    "No se pudo cargar la categoría 19 para /venta/electrodomesticos.",
+    "No se pudo cargar la categoría 19 para /electrodomesticos.",
   );
   return [];
 }
@@ -59,7 +59,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     image = getImageUrl(id, imgId);
   }
 
-  const url = `/venta/electrodomesticos/${(p?.link_rewrite || "").toString()}/`;
+  const url = `/electrodomesticos/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,

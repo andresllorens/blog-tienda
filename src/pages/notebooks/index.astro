@@ -9,7 +9,7 @@ import { getImageUrl } from "../../../lib/utils";
 const category = await getCategoryById(50);
 
 if (!category) {
-  console.error("No se pudo cargar la categoría 50 para /venta/notebooks.");
+  console.error("No se pudo cargar la categoría 50 para /notebooks.");
   return [];
 }
 
@@ -57,7 +57,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     image = getImageUrl(id, imgId);
   }
 
-  const url = `/venta/notebooks/${(p?.link_rewrite || "").toString()}/`;
+  const url = `/notebooks/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,

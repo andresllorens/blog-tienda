@@ -9,7 +9,7 @@ import { getImageUrl } from "../../../lib/utils";
 const category = await getCategoryById(18);
 
 if (!category?.associations?.categories) {
-  console.error("No se pudo cargar la categoría 18 para /venta/celulares.");
+  console.error("No se pudo cargar la categoría 18 para /celulares.");
   return [];
 }
 
@@ -77,7 +77,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
       brand = "xiaomi";
     }
   }
-  const url = `/venta/celulares/${brand}/${(p?.link_rewrite || "").toString()}/`;
+  const url = `/celulares/${brand}/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,
@@ -189,7 +189,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="infinix">
                   <a
-                    href="/venta/celulares/infinix/"
+                    href="/celulares/infinix/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -200,7 +200,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="iphone">
                   <a
-                    href="/venta/celulares/iphone/"
+                    href="/celulares/iphone/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -211,7 +211,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="iphone-usados-seleccionados">
                   <a
-                    href="/venta/celulares/iphone-usados-seleccionados/"
+                    href="/celulares/iphone-usados-seleccionados/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -222,7 +222,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="motorola">
                   <a
-                    href="/venta/celulares/motorola/"
+                    href="/celulares/motorola/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -233,7 +233,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="samsung">
                   <a
-                    href="/venta/celulares/samsung/"
+                    href="/celulares/samsung/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -244,7 +244,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="xiaomi">
                   <a
-                    href="/venta/celulares/xiaomi/"
+                    href="/celulares/xiaomi/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >

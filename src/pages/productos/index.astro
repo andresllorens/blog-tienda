@@ -9,7 +9,7 @@ import { getImageUrl } from "../../../lib/utils";
 const category = await getCategoryById(2);
 
 if (!category) {
-  console.error("No se pudo cargar la categoría 2 para /venta/productos.");
+  console.error("No se pudo cargar la categoría 2 para /productos.");
   return [];
 }
 
@@ -93,7 +93,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
       brand = "tablets";
     }
   }
-  const url = `/venta/${brand}/${(p?.link_rewrite || "").toString()}/`;
+  const url = `/${brand}/${(p?.link_rewrite || "").toString()}/`;
 
   const categories = (p?.associations?.categories || [])
     .map((c) => Number(c?.id ?? c))
@@ -180,7 +180,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="accesorios">
                   <a
-                    href="/venta/accesorios/"
+                    href="/accesorios/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -191,7 +191,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="auriculares">
                   <a
-                    href="/venta/auriculares/"
+                    href="/auriculares/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -202,7 +202,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="celulares">
                   <a
-                    href="/venta/celulares/"
+                    href="/celulares/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -213,7 +213,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="consolas">
                   <a
-                    href="/venta/consolas/"
+                    href="/consolas/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -224,7 +224,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="electrodomesticos">
                   <a
-                    href="/venta/electrodomesticos/"
+                    href="/electrodomesticos/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -235,7 +235,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="notebooks">
                   <a
-                    href="/venta/notebooks/"
+                    href="/notebooks/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -246,7 +246,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="parlantes">
                   <a
-                    href="/venta/parlantes/"
+                    href="/parlantes/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -257,7 +257,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="smartwatch">
                   <a
-                    href="/venta/smartwatch/"
+                    href="/smartwatch/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >
@@ -268,7 +268,7 @@ const whatsappUrl =
               <li>
                 <label class="facet-label" for="tablets">
                   <a
-                    href="/venta/tablets/"
+                    href="/tablets/"
                     class="_gray-darker search-link js-search-link"
                     rel="nofollow"
                   >

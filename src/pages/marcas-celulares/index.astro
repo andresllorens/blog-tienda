@@ -6,7 +6,7 @@ import { Image } from "astro:assets";
 const category = await getCategoryById(18);
 
 if (!category?.associations?.categories) {
-  console.error("No se pudo cargar la categoría 18 para /venta/[name].");
+  console.error("No se pudo cargar la categoría 18 para /[name].");
   return [];
 }
 
@@ -283,7 +283,7 @@ const whatsappUrl =
         <p class="txt-medium negrita">¡Comprá tu iphone HOY!</p>
         <p class="txt-medium thin">y accede a Beneficios y Regalos</p>
         <p class="txt-medium thin">Exclusivos</p>
-        <a class="boton-ir" href="/venta/celulares/iphone/"
+        <a class="boton-ir" href="/celulares/iphone/"
           >Ir a Celulares</a
         >
       </div>
@@ -329,7 +329,7 @@ const whatsappUrl =
         <p class="txt-medium">xiaomi de <b>última generación<b></b></b></p><b
           ><b>
             <p class="txt-medium">en un solo lugar</p>
-            <a class="boton-ir" href="/venta/celulares/xiaomi/"
+            <a class="boton-ir" href="/celulares/xiaomi/"
               >Ir a Celulares</a
             >
           </b></b
@@ -353,7 +353,7 @@ const whatsappUrl =
         <p class="txt-medium">El universo</p>
         <p class="txt-medium"><b>de teléfonos Samsung</b></p>
         <p class="txt-medium">en tus manos</p>
-        <a class="boton-ir" href="/venta/celulares/samsung/"
+        <a class="boton-ir" href="/celulares/samsung/"
           >Ir a Celulares</a
         >
       </div>
@@ -397,7 +397,7 @@ const whatsappUrl =
           ><b>
             <a
               class="boton-ir"
-              href="/venta/celulares/motorola/"
+              href="/celulares/motorola/"
               >Ir a Celulares</a
             >
           </b></b

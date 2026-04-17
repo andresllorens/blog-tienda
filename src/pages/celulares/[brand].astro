@@ -12,7 +12,7 @@ export async function getStaticPaths() {
 
   if (!parentCategory?.associations?.categories) {
     console.error(
-      "No se pudo cargar la categoría madre 18 para /venta/[brand].",
+      "No se pudo cargar la categoría madre 18 para /[brand].",
     );
     return [];
   }
@@ -114,7 +114,7 @@ const productsView = (products || []).map((p, idx) => {
     image = getImageUrl(id, imgId);
   }
 
-  const url = `/venta/celulares/${category.link_rewrite}/${(p?.link_rewrite || "").toString()}/`;
+  const url = `/celulares/${category.link_rewrite}/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,

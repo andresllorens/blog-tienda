@@ -9,7 +9,7 @@ import { getImageUrl } from "../../../lib/utils";
 const category = await getCategoryById(61);
 
 if (!category) {
-  console.error("No se pudo cargar la categoría 61 para /venta/tablets.");
+  console.error("No se pudo cargar la categoría 61 para /tablets.");
   return [];
 }
 
@@ -57,7 +57,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     image = getImageUrl(id, imgId);
   }
 
-  const url = `/venta/tablets/${(p?.link_rewrite || "").toString()}/`;
+  const url = `/tablets/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,
