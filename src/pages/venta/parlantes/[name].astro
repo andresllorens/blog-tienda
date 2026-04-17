@@ -1,0 +1,732 @@
+---
+import {
+  getProductsByCategory,
+  getProductFeature,
+  getProductFeatureValue,
+} from "../../../lib/prestashop";
+import LayoutPrincipal from "../../../layouts/LayoutPrincipal.astro";
+import ModalPedido from "../../../components/ModalPedido.astro";
+import { getImageUrl } from "../../../lib/utils";
+import { Image } from "astro:assets";
+
+export async function getStaticPaths() {
+  try {
+    const candidates = await getProductsByCategory(58);
+    return candidates.map((product) => ({
+      params: { name: product.link_rewrite },
+      props: { product },
+    }));
+  } catch (error) {
+    console.error("Error trayendo productos por categoría:", error);
+    return [];
+  }
+}
+
+// Funcioines auxiliares
+const formatCurrency = (value: number | bigint) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+
+// 2. Obtener la data específica para ESTE producto
+const { product } = Astro.props;
+if (!product) {
+  return Astro.redirect("/404");
+}
+
+// Extraer variables del objeto product
+const id = product.id;
+const productSlug = product.link_rewrite;
+const price = product.price ? parseFloat(product.price).toFixed(2) : "0.00";
+const name = product.name ?? "Producto sin nombre";
+const meta_description = product.meta_description ?? "";
+
+// Definimos el array donde guardaremos los resultados
+let caracteristicas = [];
+
+if (product?.associations?.product_features) {
+  for (const feature of product.associations.product_features) {
+    try {
+      // Obtenemos la definición de la característica
+      const caracteristica = await getProductFeature(feature.id);
+
+      // Obtenemos el valor específico y lo asignamos
+      caracteristica.valor = await getProductFeatureValue(
+        feature.id_feature_value,
+      );
+
+      // Guardamos el objeto completo en nuestro array
+      caracteristicas.push(caracteristica);
+    } catch (error) {
+      console.error(`Error procesando la característica ${feature.id}:`, error);
+    }
+  }
+}
+
+const caracteristicasOrdenadas = caracteristicas.sort((a, b) => {
+  return parseInt(a.position) - parseInt(b.position);
+});
+
+// Precios
+const rawPrice = parseFloat(price);
+// Definimos variables de salida
+
+let precioEfectivo = rawPrice * 0.65;
+let precioDebito = rawPrice * 0.8;
+
+// 3 Cuotas con recargo del 0%
+const precioRecargo3 = rawPrice;
+let cuota3 = precioRecargo3 / 3;
+
+// 6 Cuotas con recargo del 0%
+const precioRecargo6 = rawPrice * 1;
+let cuota6 = precioRecargo6 / 6;
+
+// 9 y 12 cuotas no disponibles por defecto en esta categoría
+let cuota9 = false;
+let cuota12 = false;
+
+//Efectivo
+const discountPercentEfectivo = 35;
+const precioEfectivoNum = rawPrice * (1 - discountPercentEfectivo / 100);
+
+//Imagenes
+const mainImageId = product.id_default_image ?? null;
+const mainImage = await getImageUrl(id, mainImageId);
+const images = product.associations.images || [];
+
+//Whatsapp
+const nameForWhatsapp = name.replace(/ /g, "+");
+const whatsappNumber = "5493513473549";
+const whatsappUrl = `https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=Hola+Lobbyx%21+Queria+consultarte+sobre+${nameForWhatsapp}&type=phone_number&app_absent=0`;
+
+const textoBotonCompra = `Compra con ${discountPercentEfectivo}% de descuento!`;
+// Lógica para la imagen (PrestaShop usa una estructura de carpetas basada en el ID)
+
+const jsonLd = {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  name: name,
+  image: [mainImage],
+  description: meta_description,
+  sku: product.id.toString(),
+  brand: {
+    "@type": "Brand",
+    name: product.manufacturer_name,
+  },
+  offers: {
+    "@type": "Offer",
+    url: Astro.url.href,
+    priceCurrency: "ARS", // Ajustar según tu moneda
+    price: parseFloat(product.price).toFixed(2),
+    itemCondition: "https://schema.org/NewCondition",
+  },
+};
+---
+
+<LayoutPrincipal
+  title={name}
+  meta_description={meta_description}
+  whatsappUrl={whatsappUrl}
+>
+  <div class="row product-container js-product-container">
+    <div class="col-md-6">
+      <h1 class="h1" style="text-align: center;">{name}</h1>
+      <section class="page-content" id="content">
+
+        {/* Iimagen del Producto */}
+        <div class="images-container js-images-container">
+          <div class="product-cover">
+            {/* imagen principal */}
+            <Image
+              class="js-qv-product-cover img-fluid"
+              src={mainImage}
+              alt={productSlug}
+              title={productSlug}
+              width={800}
+              height={800}
+              loading="eager"
+              fetchpriority="high"
+              quality="mid"
+            />
+            {/* imagen principal */}
+          </div>
+
+          <div class="js-qv-mask mask scroll">
+            {/* Carrousel de Imagenes */}
+            <ul
+              class="product-images js-qv-product-images"
+              style="overflow-x: scroll;"
+            >
+              {
+                images.map((img: { id: any }, index: number) => {
+                  const baseUrl = `https://tecnolobbyx.com/tienda/${img.id}`;
+
+                  return (
+                    <li class="thumb-container js-thumb-container">
+                      <Image
+                        class={`thumb js-thumb ${index === 0 ? "selected js-thumb-selected" : ""}`}
+                        data-image-medium-src={`${baseUrl}-medium_default/${productSlug}.jpg`}
+                        data-image-large-src={`${baseUrl}-large_default/${productSlug}.jpg`}
+                        src={`${baseUrl}-small_default/${productSlug}.jpg`}
+                        alt={product.name || "Imagen de producto"}
+                        title={product.name || "Imagen de producto"}
+                        loading="lazy"
+                        width="98"
+                        height="98"
+                      />
+                    </li>
+                  );
+                })
+              }
+            </ul>
+            {/* Carrousel de Imagenes */}
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="col-md-6">
+      <div class="price-container">
+        <div class="price-card card-efectivo">
+          <div class="price-header">
+            <span class="main-price" id="precio-efectivo-val">
+              {formatCurrency(precioEfectivo)}
+            </span>
+          </div>
+          <p class="price-footer">
+            Pagando con Efectivo -Transferencia
+          </p>
+          <p class="price-footer">
+            <span class="secondary-price" id="precio-lista-val"
+              >{formatCurrency(rawPrice)}</span
+            > Precio de lista.
+          </p>
+          <p class="price-footer">
+            6 cuotas sin interés de {formatCurrency(cuota6)} con Visa y Mastercard
+          </p>
+        </div>
+      </div>
+
+      <div id="botones-compra-externa">
+        <ModalPedido
+          productName={name}
+          precioEfectivo={precioEfectivo}
+          precioLista={rawPrice}
+          precioDebito={precioDebito}
+          cuota3={cuota3}
+          cuota6={cuota6}
+          cuota9={false}
+          cuota12={false}
+          textoBotonCompra={textoBotonCompra}
+        />
+      </div>
+
+      <div id="cajaMostrarPrecios" class="payment-methods-box">
+        <div class="icon-pago">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            fill="currentColor"
+            class="bi bi-credit-card"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"
+            ></path>
+            <path
+              d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"
+            ></path>
+          </svg>
+        </div>
+        <div class="payment-body">
+          <p class="payment-title">Medios de pago</p>
+          <a href="#" id="showModalBtn" class="mostrar-precios-link">
+            Ver todos los medios de pago
+          </a>
+        </div>
+      </div>
+
+      <div id="modal" class="modal modal-precios" style="display: none;">
+        <div class="modal-content">
+          <span class="close-btn" id="closeModalBtn">×</span>
+          <h2>Listado de Precios</h2>
+          <ul>
+            <li>
+              <span class="price" style="font-size: 20px;color: #00a650;">
+                {formatCurrency(precioEfectivoNum)}
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Efectivo - Transferencia
+              </p>
+              <div class="shipping_option_icon">
+                <Image
+                  src="https://d28hi93gr697ol.cloudfront.net/_global/checkout/payment_efectivo.png"
+                  alt="Efectivo"
+                  width={60}
+                  height={60}
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 20px;">
+                {formatCurrency(precioDebito)} - Debito
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Debito Visa o Mastercard! 20% de descuento sobre
+                precio de lista.
+              </p>
+              <div class="shipping_option_icon">
+                <Image
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                  alt="Debito"
+                  width={60}
+                  height={60}
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                Credito en 1 Pago
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(rawPrice)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <Image
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                  alt="Credito en 1 Pago"
+                  width={60}
+                  height={60}
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                3 Cuotas Sin Interés de
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(cuota3)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <Image
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                  alt="Cuotas 3"
+                  width={60}
+                  height={60}
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                6 Cuotas Sin Interés de
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(cuota6)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <Image
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                  alt="Cuotas 6"
+                  width={60}
+                  height={60}
+                />
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="row product-container js-product-container">
+    <div class="tabs" style="margin: 0; display: block; padding: 1.25rem 10px;">
+      <ul class="nav nav-tabs" role="tablist" style="display: flex;">
+        <li class="nav-item">
+          <a
+            class="nav-link js-product-nav-active active"
+            data-toggle="tab"
+            href="#description"
+            role="tab"
+            aria-controls="description"
+            aria-selected="true"
+            aria-expanded="true">Descripción</a
+          >
+        </li>
+        {(caracteristicas.length > 0) && (
+            <li class="nav-item">
+            <a
+                class="nav-link"
+                data-toggle="tab"
+                href="#product-details"
+                role="tab"
+                aria-controls="product-details"
+                aria-expanded="false">Detalles del producto</a
+            >
+            </li>
+        )}
+      </ul>
+
+      <div
+        class="tab-content"
+        id="tab-content"
+        style="max-height: 50vh; overflow-y: auto;"
+      >
+        <div
+          class="tab-pane fade js-product-tab-active active in"
+          id="description"
+          role="tabpanel"
+          aria-expanded="true"
+        >
+          <div class="product-description" set:html={product.description} />
+        </div>
+
+        <div
+          class="js-product-details tab-pane fade"
+          id="product-details"
+          role="tabpanel"
+          aria-expanded="false"
+        >
+          <section class="product-features" id="product-features">
+            <p class="h6">Ficha técnica</p>
+            <dl class="data-sheet">
+              {
+                caracteristicasOrdenadas.map((feature) => (
+                  <>
+                    <dt class="name">{feature.name}</dt>
+                    <dd class="value">{feature.valor}</dd>
+                  </>
+                ))
+              }
+            </dl>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Seleccionamos todos los enlaces de las pestañas
+    const tabLinks = document.querySelectorAll(".nav-tabs .nav-link");
+    // Seleccionamos todos los paneles de contenido
+    const tabPanes = document.querySelectorAll(".tab-content .tab-pane");
+
+    tabLinks.forEach((link) => {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        // 1. GESTIÓN DE LOS BOTONES (NAV-LINKS)
+        // Quitamos 'active' de todos los enlaces
+        tabLinks.forEach((l) => l.classList.remove("active"));
+        // Añadimos 'active' al que tocamos
+        this.classList.add("active");
+
+        // 2. GESTIÓN DEL CONTENIDO (TAB-PANES)
+        const targetId = this.getAttribute("href"); // Ejemplo: "#product-details"
+
+        tabPanes.forEach((pane) => {
+          // Quitamos las clases de activación de todos los paneles
+          pane.classList.remove("active", "in", "show");
+
+          // Si el id del panel coincide con el href del link, lo activamos
+          if (`#${pane.id}` === targetId) {
+            pane.classList.add("active", "in");
+            // 'in' es para el efecto de fade de Bootstrap antiguo,
+            // 'show' se usa en versiones más modernas.
+            pane.classList.add("show");
+          }
+        });
+      });
+    });
+  </script>
+  <script is:inline src="https://tecnolobbyx.com/theme.js"></script>
+  <script>
+    function initProductGallery() {
+      // 1. Elementos de la página principal
+      const mainCover = document.querySelector(
+        ".js-qv-product-cover",
+      ) as HTMLImageElement;
+      const thumbs = document.querySelectorAll(".js-thumb");
+      const openModalBtn = document.querySelector(".product-cover"); // Clic en la foto principal para ampliar
+
+      // 2. Elementos del Modal de Imágenes
+      const imageModal = document.getElementById("product-modal") || "";
+      const modalCover = document.querySelector(
+        ".js-modal-product-cover",
+      ) as HTMLImageElement;
+      const modalThumbs = document.querySelectorAll(".js-modal-thumb");
+
+      // --- LÓGICA DE GALERÍA PRINCIPAL ---
+      thumbs.forEach((thumb) => {
+        thumb.addEventListener("click", (e) => {
+          const target = e.currentTarget as HTMLImageElement;
+          const mediumSrc = target.getAttribute("data-image-medium-src");
+
+          if (mainCover && mediumSrc) {
+            mainCover.src = mediumSrc;
+          }
+
+          thumbs.forEach((t) =>
+            t.classList.remove("selected", "js-thumb-selected"),
+          );
+          target.classList.add("selected", "js-thumb-selected");
+        });
+      });
+
+      // --- LÓGICA DE APERTURA DE MODAL ---
+      if (openModalBtn && imageModal) {
+        openModalBtn.addEventListener("click", () => {
+          imageModal.classList.add("in");
+          imageModal.style.display = "block";
+          document.body.classList.add("modal-open");
+
+          // Sincronizar la imagen del modal con la que está puesta afuera
+          if (mainCover && modalCover) {
+            modalCover.src = mainCover.src.replace(
+              "medium_default",
+              "large_default",
+            );
+          }
+        });
+      }
+
+      // --- LÓGICA DE MINIATURAS DENTRO DEL MODAL ---
+      modalThumbs.forEach((mThumb) => {
+        mThumb.addEventListener("click", (e) => {
+          const target = e.currentTarget as HTMLImageElement;
+          const largeSrc = target.getAttribute("data-image-large-src");
+
+          if (modalCover && largeSrc) {
+            modalCover.src = largeSrc;
+          }
+
+          modalThumbs.forEach((t) => t.classList.remove("selected"));
+          target.classList.add("selected");
+        });
+      });
+
+      // --- CERRAR MODAL AL CLICKEAR FUERA ---
+      window.addEventListener("click", (e) => {
+        if (e.target === imageModal) {
+          imageModal.classList.remove("in");
+          imageModal.style.display = "none";
+          document.body.classList.remove("modal-open");
+        }
+      });
+    }
+
+    // Inicializar
+    initProductGallery();
+    // Re-inicializar si usas transiciones de Astro
+    document.addEventListener("astro:after-swap", initProductGallery);
+  </script>
+
+  <style is:global>
+    /* Estilos básicos para que las miniaturas se vean seleccionadas */
+    .thumb.selected,
+    .js-modal-thumb.selected {
+      border: 2px solid #24b9d7 !important;
+      opacity: 1 !important;
+    }
+    .product-cover {
+      cursor: zoom-in;
+    }
+    /* El modal de imágenes de PrestaShop suele ser flex o block */
+    #product-modal.in {
+      display: block;
+      background: rgba(0, 0, 0, 0.8);
+    }
+    .price-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .price-card {
+      padding-left: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Barras laterales */
+    .card-efectivo {
+      border-left: 4px solid;
+      border-image-source: linear-gradient(to bottom, #00d9ff, #c900ff);
+      border-image-slice: 1;
+      padding: 10px;
+    }
+
+    .card-lista {
+      border-left: 4px solid #fd7e14; /* Naranja */
+    }
+
+    .price-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .main-price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #8223fd;
+    }
+
+    .secondary-price {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #444;
+      text-decoration: line-through;
+    }
+
+    .discount-tag {
+      color: #28a745;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .price-footer {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    /* Enlace medios de pago */
+    .payment-methods-link {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .payment-methods-link a {
+      color: #007bff;
+      text-decoration: none;
+      margin-left: 5px;
+    }
+
+    .payment-methods-link a:hover {
+      text-decoration: underline;
+    }
+    .payment-methods-box {
+      display: flex;
+      align-items: center; /* Centra verticalmente el icono con el texto */
+      gap: 12px;
+      margin: 25px 0;
+      font-family: "Inter", sans-serif; /* O la que estés usando */
+    }
+
+    .icon-pago {
+      color: #333; /* Color oscuro para el icono */
+      display: flex;
+      align-items: center;
+    }
+
+    .payment-body {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.3;
+    }
+
+    .payment-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .mostrar-precios-link {
+      font-size: 14px;
+      color: #007bff; /* Azul de enlace */
+      text-decoration: underline;
+      transition: color 0.2s ease;
+    }
+
+    .mostrar-precios-link:hover {
+      color: #0056b3;
+      text-decoration: none;
+    }
+    .banner-prod-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2px;
+      padding: 10px 5px;
+
+      background: linear-gradient(180deg, #2f4f63, #1f3b4d);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+      color: #fff;
+      font-family: Arial, sans-serif;
+      border: 3px solid #6fd1c5;
+    }
+    .banner-prod-info .item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 1;
+    }
+    .banner-prod-info .item img {
+      width: 25px;
+      height: 25px;
+      object-fit: contain;
+    }
+    .banner-prod-info .item span {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      line-height: normal;
+    }
+    .product-description h2 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .product-description h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+    .product-description p {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+      font-weight: 400;
+    }
+    .product-description p strong {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+      font-weight: bolder;
+    }
+    .product-description ul {
+      list-style-type: disc;
+      padding-left: 40px;
+    }
+
+    #botones-compra-externa {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</LayoutPrincipal>
