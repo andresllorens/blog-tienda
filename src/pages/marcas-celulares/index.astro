@@ -1,6 +1,6 @@
 ---
-import LayoutPrincipal from "../../../layouts/LayoutPrincipal.astro";
-import { getCategoryById } from "../../../lib/prestashop";
+import LayoutPrincipal from "../../layouts/LayoutPrincipal.astro";
+import { getCategoryById } from "../../lib/prestashop";
 import { Image } from "astro:assets";
 
 const category = await getCategoryById(18);

@@ -1,10 +1,10 @@
 ---
-import LayoutListado from "../../../layouts/LayoutListado.astro";
+import LayoutListado from "../../layouts/LayoutListado.astro";
 import {
   getCategoryById,
   getProductsByCategory,
-} from "../../../lib/prestashop";
-import { getImageUrl } from "../../../lib/utils";
+} from "../../lib/prestashop";
+import { getImageUrl } from "../../lib/utils";
 
 export async function getStaticPaths() {
   const parentCategory = await getCategoryById(18);
