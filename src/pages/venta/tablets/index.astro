@@ -57,12 +57,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     image = getImageUrl(id, imgId);
   }
 
-  const url =
-    p?.link ||
-    p?.url ||
-    (id
-      ? `https://tecnolobbyx.com/tienda/tablets/${id}-${(p?.link_rewrite || "").toString()}.html`
-      : "#");
+  const url = `/venta/tablets/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,
