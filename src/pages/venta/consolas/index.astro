@@ -8,9 +8,8 @@ import { getImageUrl } from "../../../lib/utils";
 
 const category = await getCategoryById(62);
 
-if (!category?.associations?.categories) {
+if (!category) {
   console.error("No se pudo cargar la categoría 62 para /venta/consolas.");
-  return [];
 }
 
 // Fase 1: cargar productos reales de la categoría 62 y normalizar view model

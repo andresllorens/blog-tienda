@@ -11,7 +11,7 @@ import { Image } from "astro:assets";
 
 export async function getStaticPaths() {
   try {
-    const candidates = await getProductsByCategory(62);
+    const candidates = await getProductsByCategory(50);
     return candidates.map((product) => ({
       params: { name: product.link_rewrite },
       props: { product },
@@ -74,27 +74,23 @@ const caracteristicasOrdenadas = caracteristicas.sort((a, b) => {
 const rawPrice = parseFloat(price);
 // Definimos variables de salida
 
-let precioEfectivo = rawPrice * 0.70;
-let precioDebito = rawPrice * 0.9;
+let precioEfectivo = rawPrice * 0.65;
+let precioDebito = rawPrice * 0.8;
 
-// 3 Cuotas con recargo del 12%
-const precioRecargo3 = rawPrice * 1.12;
+// 3 Cuotas con recargo del 0%
+const precioRecargo3 = rawPrice;
 let cuota3 = precioRecargo3 / 3;
 
-// 6 Cuotas con recargo del 17%
-const precioRecargo6 = rawPrice * 1.17;
+// 6 Cuotas con recargo del 0%
+const precioRecargo6 = rawPrice * 1;
 let cuota6 = precioRecargo6 / 6;
 
-// 9 Cuotas con recargo del 30%
-const precioRecargo9 = rawPrice * 1.30;
-let cuota9 = precioRecargo9 / 9;
-
-// 12 Cuotas con recargo del 35%
-const precioRecargo12 = rawPrice * 1.35;
-let cuota12 = precioRecargo12 / 12;
+// 9 y 12 cuotas no disponibles por defecto en esta categoría
+let cuota9 = false;
+let cuota12 = false;
 
 //Efectivo
-const discountPercentEfectivo = 30;
+const discountPercentEfectivo = 35;
 const precioEfectivoNum = rawPrice * (1 - discountPercentEfectivo / 100);
 
 //Imagenes
@@ -193,40 +189,6 @@ const jsonLd = {
       </section>
     </div>
     <div class="col-md-6">
-            <div class="banner-prod-info">
-        <div class="item">
-          <img
-            src="https://tecnolobbyx.com/tienda/img/garantia.png"
-            alt="Garantía"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-          <span>Garantía de 1 Año</span>
-        </div>
-
-        <div class="item">
-          <img
-            src="https://tecnolobbyx.com/tienda/img/envio.png"
-            alt="Envío"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-          <span>Envíos a todo el País</span>
-        </div>
-
-        <div class="item">
-          <img
-            src="https://tecnolobbyx.com/tienda/img/local.png"
-            alt="Ubicación"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
-          <span>Tienda Física en Córdoba</span>
-        </div>
-      </div>
       <div class="price-container">
         <div class="price-card card-efectivo">
           <div class="price-header">
@@ -243,7 +205,7 @@ const jsonLd = {
             > Precio de lista.
           </p>
           <p class="price-footer">
-            6 cuotas fijas de {formatCurrency(cuota6)} con Visa y Mastercard
+            6 cuotas sin interés de {formatCurrency(cuota6)} con Visa y Mastercard
           </p>
         </div>
       </div>
@@ -256,8 +218,8 @@ const jsonLd = {
           precioDebito={precioDebito}
           cuota3={cuota3}
           cuota6={cuota6}
-          cuota9={cuota9}
-          cuota12={cuota12}
+          cuota9={false}
+          cuota12={false}
           textoBotonCompra={textoBotonCompra}
         />
       </div>
@@ -311,27 +273,10 @@ const jsonLd = {
             </li>
             <li>
               <span class="price" style="font-size: 20px;">
-                {formatCurrency(rawPrice)} - Credito 1 Pago
-              </span>
-              <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Credito Visa o Mastercard! Precio de lista - Credito 1 Pago.
-              </p>
-              <div class="shipping_option_icon">
-                <Image
-                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
-                  style="width: 100%;vertical-align: middle;"
-                  alt="Credito 1 Pago"
-                  width={60}
-                  height={60}
-                />
-              </div>
-            </li>
-            <li>
-              <span class="price" style="font-size: 20px;">
                 {formatCurrency(precioDebito)} - Debito
               </span>
               <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Debito Visa o Mastercard! 10% de descuento sobre
+                Pagando con Debito Visa o Mastercard! 20% de descuento sobre
                 precio de lista.
               </p>
               <div class="shipping_option_icon">
@@ -346,7 +291,27 @@ const jsonLd = {
             </li>
             <li>
               <span class="price" style="font-size: 15px;">
-                3 Cuotas Fijas de
+                Credito en 1 Pago
+                <span style="font-size: 20px; color: rgb(30,159,195)"
+                  >{formatCurrency(rawPrice)}</span
+                >
+              </span>
+              <p style="padding: 0;margin: 0;font-size: 12px;">
+                Pagando con Credito Visa o Mastercard!
+              </p>
+              <div class="shipping_option_icon">
+                <Image
+                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
+                  style="width: 100%;vertical-align: middle;"
+                  alt="Credito en 1 Pago"
+                  width={60}
+                  height={60}
+                />
+              </div>
+            </li>
+            <li>
+              <span class="price" style="font-size: 15px;">
+                3 Cuotas Sin Interés de
                 <span style="font-size: 20px; color: rgb(30,159,195)"
                   >{formatCurrency(cuota3)}</span
                 >
@@ -366,7 +331,7 @@ const jsonLd = {
             </li>
             <li>
               <span class="price" style="font-size: 15px;">
-                6 Cuotas Fijas de
+                6 Cuotas Sin Interés de
                 <span style="font-size: 20px; color: rgb(30,159,195)"
                   >{formatCurrency(cuota6)}</span
                 >
@@ -379,46 +344,6 @@ const jsonLd = {
                   src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
                   alt="Cuotas 6"
-                  width={60}
-                  height={60}
-                />
-              </div>
-            </li>
-            <li>
-              <span class="price" style="font-size: 15px;">
-                9 Cuotas Fijas de
-                <span style="font-size: 20px; color: rgb(30,159,195)"
-                  >{formatCurrency(cuota9)}</span
-                >
-              </span>
-              <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Credito Visa o Mastercard!
-              </p>
-              <div class="shipping_option_icon">
-                <Image
-                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
-                  style="width: 100%;vertical-align: middle;"
-                  alt="Cuotas 9"
-                  width={60}
-                  height={60}
-                />
-              </div>
-            </li>
-            <li>
-              <span class="price" style="font-size: 15px;">
-                12 Cuotas Fijas de
-                <span style="font-size: 20px; color: rgb(30,159,195)"
-                  >{formatCurrency(cuota12)}</span
-                >
-              </span>
-              <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Credito Visa o Mastercard!
-              </p>
-              <div class="shipping_option_icon">
-                <Image
-                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
-                  style="width: 100%;vertical-align: middle;"
-                  alt="Cuotas 12"
                   width={60}
                   height={60}
                 />
