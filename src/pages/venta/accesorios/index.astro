@@ -13,23 +13,6 @@ if (!category?.associations?.categories) {
   return [];
 }
 
-delete category.associations.products;
-
-const categories = category.associations.categories || [];
-
-category.associations.categories = [];
-
-for (const cat of categories) {
-  if (!cat?.id) {
-    continue;
-  }
-
-  const c = await getCategoryById(cat.id);
-  if (c?.active === "1") {
-    category.associations.categories.push(c);
-  }
-}
-
 // Fase 1: cargar productos reales de la categoría 10 y normalizar view model
 const rawProducts = await getProductsByCategory(10, { activeOnly: true });
 
@@ -78,12 +61,7 @@ const productsView = (rawProducts || []).map((p, idx) => {
     .map((c) => Number(c?.id ?? c))
     .filter(Boolean);
 
-  const url =
-    p?.link ||
-    p?.url ||
-    (id
-      ? `https://tecnolobbyx.com/tienda/smartwatch/${id}-${(p?.link_rewrite || "").toString()}.html`
-      : "#");
+  const url = `/venta/accesorios/${(p?.link_rewrite || "").toString()}/`;
 
   return {
     id,
@@ -136,7 +114,7 @@ const categoriesView = (category.associations?.categories || []).map((c) => {
     name: displayName,
     link:
       c?.link ||
-      `https://tecnolobbyx.com/tienda/${id}-${(c?.link_rewrite || "").toString()}`,
+      `./${(c?.link_rewrite || "").toString()}.html`,
     description: c?.description || "",
     count: subcategoryCounts[id] || 0,
   };
@@ -260,7 +238,10 @@ const whatsappUrl =
         <section id="products">
           <div id="js-product-list-top" class="row products-selection">
             <div class="col-md-6 hidden-sm-down total-products">
-              <p>Hay {productsView.length} {productsView.length === 1 ? 'producto' : 'productos'}.</p>
+              <p>
+                Hay {productsView.length}
+                {productsView.length === 1 ? "producto" : "productos"}.
+              </p>
             </div>
             <div class="col-md-6">
               <div class="row sort-by-row">
@@ -291,7 +272,8 @@ const whatsappUrl =
               </div>
             </div>
             <div class="col-sm-12 hidden-md-up text-sm-center showing">
-              Mostrando 1-{productsView.length} de {productsView.length} {productsView.length === 1 ? 'artículo' : 'artículos'}
+              Mostrando 1-{productsView.length} de {productsView.length}
+              {productsView.length === 1 ? "artículo" : "artículos"}
             </div>
           </div>
 
@@ -346,6 +328,13 @@ const whatsappUrl =
                 ))
               }
             </div>
+            <nav class="mt-4">
+              <ul
+                id="pagination-container"
+                class="pagination justify-content-center"
+              >
+              </ul>
+            </nav>
           </div>
         </section>
       </section>
@@ -358,7 +347,6 @@ const whatsappUrl =
     function initSlider() {
       const slider = document.getElementById("price-slider");
       const label = document.getElementById("price-label");
-      const products = Array.from(document.querySelectorAll(".js-product"));
 
       if (!slider) return;
 
@@ -410,13 +398,18 @@ const whatsappUrl =
           label.textContent = `${formatCurrency.format(currentMin)} - ${formatCurrency.format(currentMax)}`;
         }
 
-        // Filtrar productos por precio
-        products.forEach((product) => {
+        // 1. En lugar de cambiar el display acá, filtramos la lista global
+        filteredProducts = allProductsElements.filter((product) => {
           const price = parseFloat(product.dataset.price);
-          if (!Number.isFinite(price)) return;
-          product.style.display =
-            price >= currentMin && price <= currentMax ? "block" : "none";
+          if (!Number.isFinite(price)) return false;
+          return price >= currentMin && price <= currentMax;
         });
+
+        // 2. Cada vez que el filtro cambia, volvemos a la página 1
+        currentPage = 1;
+
+        // 3. Llamamos a nuestra nueva función que se encarga de mostrar los 15 (o 3) que correspondan
+        updateUI();
       });
     }
 
@@ -560,6 +553,17 @@ const whatsappUrl =
 
       // Re-append in sorted order
       for (const it of items) container.appendChild(it);
+
+      const slider = document.getElementById("price-slider");
+      const [min, max] = slider.noUiSlider.get().map(Number);
+
+      filteredProducts = items.filter(el => {
+        const price = parseFloat(el.dataset.price);
+        return price >= min && price <= max;
+      });
+
+      currentPage = 1;
+      updateUI();
     }
 
     function initSorting() {
@@ -577,16 +581,122 @@ const whatsappUrl =
       });
     }
 
+    // 1. Configuraciones base
+    const ITEMS_PER_PAGE = 12;
+    let currentPage = 1;
+    const productsSection = document.getElementById('products');
+
+    // 2. Guardamos todos los productos en un Array desde el principio.
+    // Usamos Array.from para convertir el NodeList en un Array real de JS y poder manipularlo fácil.
+    const allProductsElements = Array.from(
+      document.querySelectorAll(".js-product"),
+    );
+
+    // 3. Esta variable va a tener los productos "activos" (los que cumplen los filtros).
+    // Al cargar la página por primera vez, son todos.
+    let filteredProducts = [...allProductsElements];
+
+    function renderPage(page) {
+      // 1. Calculamos los índices matemáticos
+      const startIndex = (page - 1) * ITEMS_PER_PAGE;
+      const endIndex = startIndex + ITEMS_PER_PAGE;
+
+      // 2. Primero, por las dudas, ocultamos ABSOLUTAMENTE TODOS los productos en el DOM
+      allProductsElements.forEach((el) => (el.style.display = "none"));
+
+      // 3. Agarramos solo nuestra lista de "productos válidos/filtrados"
+      // y mostramos los que caen dentro del rango de esta página
+      filteredProducts.forEach((el, index) => {
+        if (index >= startIndex && index < endIndex) {
+          el.style.display = "block";
+        }
+      });
+    }
+    function setupPagination() {
+      const paginationContainer = document.getElementById(
+        "pagination-container",
+      );
+      paginationContainer.innerHTML = ""; // Limpiamos el contenedor
+
+      const pageCount = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
+      // Si solo hay una página, no mostramos los controles
+      if (pageCount <= 1) return;
+
+      // --- Botón ANTERIOR ---
+      const prevLi = document.createElement("li");
+      prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+      prevLi.innerHTML = `<a class="page-link prev js-search-link" href="#">Anterior</a>`;
+      prevLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          currentPage--;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(prevLi);
+
+      // --- Botones NUMÉRICOS ---
+      for (let i = 1; i <= pageCount; i++) {
+        const li = document.createElement("li");
+        // Agregamos la clase 'active' o 'current' según tus estilos en theme.css
+        li.className = `page-item ${currentPage === i ? "active current" : ""}`;
+        li.innerHTML = `<a class="page-link js-search-link" href="#">${i}</a>`;
+
+        li.onclick = (e) => {
+          e.preventDefault();
+          currentPage = i;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        };
+        paginationContainer.appendChild(li);
+      }
+
+      // --- Botón SIGUIENTE ---
+      const nextLi = document.createElement("li");
+      nextLi.className = `page-item ${currentPage === pageCount ? "disabled" : ""}`;
+      nextLi.innerHTML = `<a class="page-link next js-search-link" href="#">Siguiente</a>`;
+      nextLi.onclick = (e) => {
+        e.preventDefault();
+        if (currentPage < pageCount) {
+          currentPage++;
+          updateUI();
+          if (productsSection) {
+            productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
+      };
+      paginationContainer.appendChild(nextLi);
+    }
+
+    function updateUI() {
+      renderPage(currentPage);
+      setupPagination();
+    }
+
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", function () {
         initSlider();
         initFilterToggle();
         initSorting();
+        updateUI();
       });
     } else {
       initSlider();
       initFilterToggle();
       initSorting();
+      updateUI();
     }
   </script>
 

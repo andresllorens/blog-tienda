@@ -73,30 +73,14 @@ export async function getProductFeature(id) {
 export async function getProductsByCategory(categoryId, options = {}) {
   const { activeOnly = true } = options;
 
+  const data = await fetchJsonWithRetry(
+    `${BASE_URL}/products?filter[id_category_default]=[${categoryId}]&filter[active]=[1]&display=full&output_format=JSON&ws_key=${API_KEY}`,
+    "productos",
+  );
+  const all = data?.products ?? [];
+
   // Try to fetch all products then filter locally for robustness
-  const all = await getProducts();
   if (!Array.isArray(all)) return [];
 
-  const filtered = all.filter((p) => {
-    if (!p) return false;
-    // Prefer id_category_default if present
-    if (p.id_category_default && Number(p.id_category_default) === Number(categoryId)) {
-      return true;
-    }
-
-    // Fallback: check associations.categories array
-    const cats = p.associations?.categories || [];
-    for (const c of cats) {
-      const cid = c?.id ?? c;
-      if (cid && Number(cid) === Number(categoryId)) return true;
-    }
-
-    return false;
-  });
-
-  if (activeOnly) {
-    return filtered.filter((p) => p?.active === "1" || p?.active === 1 || p?.active === true);
-  }
-
-  return filtered;
+  return all;
 }
