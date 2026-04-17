@@ -32,7 +32,7 @@ async function fetchJsonWithRetry(url, label) {
 
 export async function getProducts() {
   const data = await fetchJsonWithRetry(
-    `${BASE_URL}/products?display=full&output_format=JSON&ws_key=${API_KEY}`,
+    `${BASE_URL}/products?display=full&output_format=JSON&filter[active]=[1]&ws_key=${API_KEY}`,
     "productos",
   );
   return data?.products ?? [];
