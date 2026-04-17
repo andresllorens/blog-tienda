@@ -1,7 +1,6 @@
 ---
 import {
-  getProducts,
-  getProductById,
+  getProductsByCategory,
   getProductFeature,
   getProductFeatureValue,
 } from "../../../lib/prestashop";
@@ -11,34 +10,16 @@ import { getImageUrl } from "../../../lib/utils";
 import { Image } from "astro:assets";
 
 export async function getStaticPaths() {
-  const products = await getProducts();
-
-  // Filtramos candidatos: activos, categoría por defecto 17 y con slug
-  const candidates = (products || []).filter(
-    (p) => p && (p.active === "1" || p.active === 1) && String(p.id_category_default) === "17" && p.link_rewrite,
-  );
-
-  const seen = new Set();
-  const paths = [];
-
-  // Para asegurar que cada página reciba los datos completos, solicitamos
-  // el producto por ID y usamos ese objeto en `props`.
-  for (const p of candidates) {
-    try {
-      const full = await getProductById(p.id);
-      if (!full) continue;
-
-      const slug = String(full.link_rewrite || p.link_rewrite || "").trim();
-      if (!slug || seen.has(slug)) continue;
-      seen.add(slug);
-
-      paths.push({ params: { name: slug }, props: { product: full } });
-    } catch (e) {
-      console.error(`Error procesando producto ID ${p?.id}:`, e);
-    }
+  try {
+    const candidates = await getProductsByCategory(17);
+    return candidates.map((product) => ({
+      params: { name: product.link_rewrite },
+      props: { product },
+    }));
+  } catch (error) {
+    console.error("Error trayendo productos por categoría:", error);
+    return [];
   }
-
-  return paths;
 }
 
 // Funcioines auxiliares
@@ -394,46 +375,6 @@ const jsonLd = {
                   src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
                   style="width: 100%;vertical-align: middle;"
                   alt="Cuotas 6"
-                  width={60}
-                  height={60}
-                />
-              </div>
-            </li>
-            <li>
-              <span class="price" style="font-size: 15px;">
-                9 Cuotas Fijas de
-                <span style="font-size: 20px; color: rgb(30,159,195)"
-                  >{formatCurrency(cuota9)}</span
-                >
-              </span>
-              <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Credito Visa o Mastercard!
-              </p>
-              <div class="shipping_option_icon">
-                <Image
-                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
-                  style="width: 100%;vertical-align: middle;"
-                  alt="Cuotas 9"
-                  width={60}
-                  height={60}
-                />
-              </div>
-            </li>
-            <li>
-              <span class="price" style="font-size: 15px;">
-                12 Cuotas Fijas de
-                <span style="font-size: 20px; color: rgb(30,159,195)"
-                  >{formatCurrency(cuota12)}</span
-                >
-              </span>
-              <p style="padding: 0;margin: 0;font-size: 12px;">
-                Pagando con Credito Visa o Mastercard!
-              </p>
-              <div class="shipping_option_icon">
-                <Image
-                  src="https://tecnolobbyx.com/tienda/img/cms/mastercard-visa.png"
-                  style="width: 100%;vertical-align: middle;"
-                  alt="Cuotas 12"
                   width={60}
                   height={60}
                 />
@@ -818,93 +759,5 @@ const jsonLd = {
       justify-content: center;
     }
   </style>
-  <script>
-    // @ts-nocheck
-    // Recuperamos datos de Astro para usarlos en el cliente
-    const PRODUCT_ID = "{id}";
-    const CATEGORY_ID = parseInt("{categoryId}");
-
-    // Grupos definidos en tu lógica [cite: 12, 13]
-    const grupoA = [18, 50, 61, 62];
-    const grupoB = [20, 17, 58];
-
-    const formatCurrency = (value: number | bigint) =>
-      new Intl.NumberFormat("es-AR", {
-        style: "currency",
-        currency: "ARS",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(value);
-
-    async function refreshPrices() {
-      try {
-        // 1. Obtener precio real de PrestaShop (puedes usar un endpoint de tu lib/prestashop o un proxy)
-        // Ajusta la URL a tu endpoint real en DonWeb
-        const response = [];
-        const data = await response.json();
-        const rawPrice = parseFloat(data.price);
-
-        if (isNaN(rawPrice)) return;
-
-        // 2. Re-calcular lógica de negocio [cite: 14, 15, 16, 17, 18, 19]
-        let precioEfectivo = 0;
-        let precioDebito = 0;
-        let cuota3 = 0;
-        let cuota6 = 0;
-        let discountPercentEfectivo = CATEGORY_ID === 18 ? 30 : 20;
-
-        if (grupoA.includes(CATEGORY_ID)) {
-          precioEfectivo = rawPrice * 0.7;
-          precioDebito = rawPrice * 0.95;
-          cuota3 = (rawPrice * 1.1) / 3;
-          cuota6 = (rawPrice * 1.15) / 6;
-        } else if (grupoB.includes(CATEGORY_ID)) {
-          precioEfectivo = rawPrice * 0.8;
-          precioDebito = rawPrice * 0.8;
-          cuota3 = rawPrice / 3;
-          cuota6 = (rawPrice * 1.1) / 6;
-        }
-
-        // 3. Actualizar el DOM (Elementos visuales)
-        const elEfectivo = document.getElementById("precio-efectivo-val");
-        const elLista = document.getElementById("precio-lista-val");
-        const elDescuento = document.getElementById("descuento-val");
-
-        if (elEfectivo) elEfectivo.textContent = formatCurrency(precioEfectivo);
-        if (elLista) elLista.textContent = formatCurrency(rawPrice);
-        if (elDescuento)
-          elDescuento.textContent = `-${discountPercentEfectivo}% OFF`;
-
-        // Modal de Precios - Lista Completa [cite: 43]
-        const modalPrices = document.querySelectorAll(".modal-precios .price");
-        if (modalPrices.length > 0) {
-          modalPrices[0].innerHTML = `${formatCurrency(precioEfectivo)} <span style="font-size: 15px;">-${discountPercentEfectivo}% OFF</span>`; // Efectivo [cite: 43]
-          modalPrices[1].innerText = formatCurrency(rawPrice); // Deposito [cite: 45]
-          modalPrices[2].innerText = `${formatCurrency(precioDebito)} - Debito`; // Debito [cite: 48]
-          modalPrices[3].innerText = `${formatCurrency(precioDebito)} - Ualá Prepaga`; // Ualá [cite: 50]
-          modalPrices[4].innerText = `${formatCurrency(precioDebito)} - Credito 1 Pago`; // 1 Pago [cite: 53]
-
-          // Cuotas
-          const cuota3Span = document.querySelector(
-            '.modal-precios span[style*="color: rgb(30,159,195)"]',
-          );
-          if (cuota3Span) cuota3Span.innerText = formatCurrency(cuota3);
-
-          // Para la cuota 6 necesitamos un selector específico o recorrer
-          const allBlueSpans = document.querySelectorAll(
-            '.modal-precios span[style*="color: rgb(30,159,195)"]',
-          );
-          if (allBlueSpans[1])
-            allBlueSpans[1].innerText = formatCurrency(cuota6);
-        }
-      } catch (error) {
-        console.error("Error actualizando precios en tiempo real:", error);
-      }
-    }
-
-    // Ejecutar al cargar y tras transiciones de Astro [cite: 77]
-    refreshPrices();
-    document.addEventListener("astro:after-swap", refreshPrices);
-  </script>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 </LayoutPrincipal>

@@ -89,37 +89,6 @@ const _fmtCurrency = new Intl.NumberFormat("es-AR", {
 const priceMinFormatted = priceMin ? _fmtCurrency.format(priceMin) : "$0";
 const priceMaxFormatted = priceMax ? _fmtCurrency.format(priceMax) : "$0";
 
-// Fase 1 - Subcategorías: calcular conteos por subcategoría usando productsView
-const subcategoryCounts = {};
-for (const prod of productsView) {
-  for (const cid of prod.categories || []) {
-    const id = Number(cid);
-    if (!id) continue;
-    subcategoryCounts[id] = (subcategoryCounts[id] || 0) + 1;
-  }
-}
-
-const categoriesView = (category.associations?.categories || []).map((c) => {
-  const id = Number(c?.id ?? 0);
-  let displayName = "";
-  if (typeof c?.name === "object") {
-    const vals = Object.values(c.name);
-    displayName = vals[0] ?? "";
-  } else {
-    displayName = c?.name ?? "";
-  }
-
-  return {
-    id,
-    name: displayName,
-    link:
-      c?.link ||
-      `./${(c?.link_rewrite || "").toString()}.html`,
-    description: c?.description || "",
-    count: subcategoryCounts[id] || 0,
-  };
-});
-
 // Extraer variables del objeto category
 const name = category.name;
 const meta_description = category.meta_description;
@@ -557,7 +526,7 @@ const whatsappUrl =
       const slider = document.getElementById("price-slider");
       const [min, max] = slider.noUiSlider.get().map(Number);
 
-      filteredProducts = items.filter(el => {
+      filteredProducts = items.filter((el) => {
         const price = parseFloat(el.dataset.price);
         return price >= min && price <= max;
       });
@@ -584,7 +553,7 @@ const whatsappUrl =
     // 1. Configuraciones base
     const ITEMS_PER_PAGE = 12;
     let currentPage = 1;
-    const productsSection = document.getElementById('products');
+    const productsSection = document.getElementById("products");
 
     // 2. Guardamos todos los productos en un Array desde el principio.
     // Usamos Array.from para convertir el NodeList en un Array real de JS y poder manipularlo fácil.
@@ -633,7 +602,10 @@ const whatsappUrl =
           currentPage--;
           updateUI();
           if (productsSection) {
-            productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
           } else {
             window.scrollTo({ top: 0, behavior: "smooth" });
           }
@@ -653,7 +625,10 @@ const whatsappUrl =
           currentPage = i;
           updateUI();
           if (productsSection) {
-            productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
           } else {
             window.scrollTo({ top: 0, behavior: "smooth" });
           }
@@ -671,7 +646,10 @@ const whatsappUrl =
           currentPage++;
           updateUI();
           if (productsSection) {
-            productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            productsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
           } else {
             window.scrollTo({ top: 0, behavior: "smooth" });
           }
