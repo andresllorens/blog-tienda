@@ -63,15 +63,19 @@ const f = (val) =>
           step="1"
           name="cuil"
           placeholder="CUIL o CUIT o DNI"
+          oninvalid="this.setCustomValidity('Por favor, ingrese un Numero de CUIL/CUIT/DNI válido (7-11 dígitos)')"
+          oninput="this.setCustomValidity('')"
           required
         />
         <input
           type="number"
           name="celular"
           placeholder="Número de celular"
+          oninvalid="this.setCustomValidity('Por favor, ingrese un número de celular válido')"
+          oninput="this.setCustomValidity('')"
           required
         />
-        <input type="email" name="email" placeholder="Email" required />
+        <input type="email" name="email" placeholder="Email"  oninvalid="this.setCustomValidity('Por favor, ingrese un email válido')" oninput="this.setCustomValidity('')" required />
 
         <select name="pago" id="medioPago" required>
           <option value="" disabled selected>Elegí tu medio de pago</option>
